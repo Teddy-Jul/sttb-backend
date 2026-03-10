@@ -29,13 +29,13 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
     {
         _logger.LogInformation("User registration attempt for email: {Email}", request.Email);
 
-        // Get default subscriber role
-        var subscriberRole = await _context.Roles
-            .FirstOrDefaultAsync(r => r.Name == RoleNames.Subscriber, cancellationToken);
+        // Get default content_creator role (or editor if content_creator not found)
+        var defaultRole = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Name == "content_creator" || r.Name == "editor", cancellationToken);
 
-        if (subscriberRole == null)
+        if (defaultRole == null)
         {
-            _logger.LogError("Subscriber role not found in database");
+            _logger.LogError("Default role not found in database");
             throw new InvalidOperationException("System configuration error: Default role not found");
         }
 
@@ -44,7 +44,7 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
             Name = request.Name,
             Email = request.Email,
             PasswordHash = _passwordHashService.HashPassword(request.Password),
-            RoleId = subscriberRole.RoleId,
+            RoleId = defaultRole.RoleId,
             Status = UserStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
@@ -63,3 +63,4 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
         };
     }
 }
+

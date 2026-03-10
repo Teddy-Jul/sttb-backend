@@ -10,43 +10,52 @@ public class PasswordHashService : IPasswordHashService
 
     public string HashPassword(string password)
     {
-        using var algorithm = new Rfc2898DeriveBytes(
-            password,
-            SaltSize,
-            Iterations,
-            HashAlgorithmName.SHA512);
-
-        var salt = algorithm.Salt;
-        var hash = algorithm.GetBytes(HashSize);
-
-        var hashBytes = new byte[SaltSize + HashSize];
-        Array.Copy(salt, 0, hashBytes, 0, SaltSize);
-        Array.Copy(hash, 0, hashBytes, SaltSize, HashSize);
-
-        return Convert.ToBase64String(hashBytes);
+        // Use BCrypt for new passwords
+        return BCrypt.Net.BCrypt.HashPassword(password, 11);
     }
 
     public bool VerifyPassword(string password, string passwordHash)
     {
-        var hashBytes = Convert.FromBase64String(passwordHash);
-
-        var salt = new byte[SaltSize];
-        Array.Copy(hashBytes, 0, salt, 0, SaltSize);
-
-        using var algorithm = new Rfc2898DeriveBytes(
-            password,
-            salt,
-            Iterations,
-            HashAlgorithmName.SHA512);
-
-        var hash = algorithm.GetBytes(HashSize);
-
-        for (int i = 0; i < HashSize; i++)
+        // Check if it's a BCrypt hash (starts with $2a$ or $2b$)
+        if (passwordHash.StartsWith("$2a$") || passwordHash.StartsWith("$2b$"))
         {
-            if (hashBytes[i + SaltSize] != hash[i])
+            try
+            {
+                return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+            }
+            catch
+            {
                 return false;
+            }
         }
 
-        return true;
+        // Otherwise, use PBKDF2 for backward compatibility
+        try
+        {
+            var hashBytes = Convert.FromBase64String(passwordHash);
+            var salt = new byte[SaltSize];
+            Array.Copy(hashBytes, 0, salt, 0, SaltSize);
+
+            using var algorithm = new Rfc2898DeriveBytes(
+                password,
+                salt,
+                Iterations,
+                HashAlgorithmName.SHA512);
+
+            var hash = algorithm.GetBytes(HashSize);
+
+            for (int i = 0; i < HashSize; i++)
+            {
+                if (hashBytes[i + SaltSize] != hash[i])
+                    return false;
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
+

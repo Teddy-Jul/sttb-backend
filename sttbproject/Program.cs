@@ -3,8 +3,6 @@ using Serilog;
 using sttbproject.Commons.Extensions;
 using sttbproject.entities;
 using sttbproject.HostedServices;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,10 +18,6 @@ builder.Host.UseSerilog();
 
 // Add services to the container
 builder.Services.AddControllers();
-
-// FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -47,6 +41,7 @@ builder.Services.AddDbContext<SttbprojectContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Application Services (MediatR, Validators, Infrastructure)
+// Validators will run in MediatR pipeline, not ASP.NET pipeline
 builder.Services.AddApplicationServices();
 
 // Hosted Services
@@ -86,7 +81,7 @@ app.MapControllers();
 
 try
 {
-    Log.Information("Starting CMS Web API");
+    Log.Information("Starting CMS Web API - Swagger available at /swagger");
     app.Run();
 }
 catch (Exception ex)
