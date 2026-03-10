@@ -24,6 +24,7 @@ public class GetContactMessageListRequestHandler : IRequestHandler<GetContactMes
     {
         var query = _context.ContactMessages.AsQueryable();
 
+        // Apply search filter first
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(c => 
@@ -32,6 +33,7 @@ public class GetContactMessageListRequestHandler : IRequestHandler<GetContactMes
                 c.Subject!.Contains(request.SearchTerm));
         }
 
+        // Apply status filter second
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
             query = query.Where(c => c.Status == request.Status);
@@ -39,6 +41,7 @@ public class GetContactMessageListRequestHandler : IRequestHandler<GetContactMes
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Apply ordering and pagination
         var messages = await query
             .OrderByDescending(c => c.CreatedAt)
             .Skip((request.PageNumber - 1) * request.PageSize)

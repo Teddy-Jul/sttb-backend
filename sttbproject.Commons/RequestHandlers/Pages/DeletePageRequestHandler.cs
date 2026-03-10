@@ -24,6 +24,7 @@ public class DeletePageRequestHandler : IRequestHandler<DeletePageRequest, bool>
         _logger.LogInformation("Deleting page: {PageId}", request.PageId);
 
         var page = await _context.Pages
+            .Include(p => p.PageViews) // Include page views
             .FirstOrDefaultAsync(p => p.PageId == request.PageId, cancellationToken);
 
         if (page == null)
@@ -32,6 +33,15 @@ public class DeletePageRequestHandler : IRequestHandler<DeletePageRequest, bool>
             throw new InvalidOperationException("Page not found");
         }
 
+        // Delete all page views first (cascade delete prevention)
+        if (page.PageViews.Any())
+        {
+            _logger.LogInformation("Deleting {Count} page views for page {PageId}", page.PageViews.Count, request.PageId);
+            _context.PageViews.RemoveRange(page.PageViews);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Now safe to delete the page
         _context.Pages.Remove(page);
         await _context.SaveChangesAsync(cancellationToken);
 

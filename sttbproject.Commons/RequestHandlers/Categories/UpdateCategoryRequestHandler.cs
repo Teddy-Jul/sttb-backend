@@ -24,8 +24,10 @@ public class UpdateCategoryRequestHandler : IRequestHandler<UpdateCategoryReques
     {
         _logger.LogInformation("Updating category: {CategoryId}", request.CategoryId);
 
+        // Use AsTracking to ensure EF Core tracks the entity for updates
         var category = await _context.Categories
             .Include(c => c.Posts)
+            .AsTracking()
             .FirstOrDefaultAsync(c => c.CategoryId == request.CategoryId, cancellationToken);
 
         if (category == null)
@@ -34,8 +36,12 @@ public class UpdateCategoryRequestHandler : IRequestHandler<UpdateCategoryReques
             throw new InvalidOperationException("Category not found");
         }
 
+        // Update properties
         category.Name = request.Name;
         category.Slug = request.Slug;
+
+        // Mark as modified explicitly
+        _context.Entry(category).State = EntityState.Modified;
 
         await _context.SaveChangesAsync(cancellationToken);
 

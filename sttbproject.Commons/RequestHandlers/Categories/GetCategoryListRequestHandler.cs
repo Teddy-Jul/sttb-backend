@@ -24,6 +24,7 @@ public class GetCategoryListRequestHandler : IRequestHandler<GetCategoryListRequ
     {
         var query = _context.Categories.AsQueryable();
 
+        // Apply search filter first
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(c => c.Name!.Contains(request.SearchTerm) || c.Slug!.Contains(request.SearchTerm));
@@ -31,6 +32,7 @@ public class GetCategoryListRequestHandler : IRequestHandler<GetCategoryListRequ
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Apply ordering and pagination
         var categories = await query
             .OrderBy(c => c.Name)
             .Skip((request.PageNumber - 1) * request.PageSize)

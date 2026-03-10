@@ -30,11 +30,13 @@ public class GetMediaListRequestHandler : IRequestHandler<GetMediaListRequest, G
             .Include(m => m.UploadedByNavigation)
             .AsQueryable();
 
+        // Apply search filter first
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(m => m.FileName!.Contains(request.SearchTerm));
         }
 
+        // Apply file type filter second
         if (!string.IsNullOrWhiteSpace(request.FileType))
         {
             query = query.Where(m => m.FileType == request.FileType);
@@ -42,6 +44,7 @@ public class GetMediaListRequestHandler : IRequestHandler<GetMediaListRequest, G
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Apply ordering and pagination
         var media = await query
             .OrderByDescending(m => m.CreatedAt)
             .Skip((request.PageNumber - 1) * request.PageSize)

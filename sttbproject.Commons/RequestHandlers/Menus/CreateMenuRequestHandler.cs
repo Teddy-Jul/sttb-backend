@@ -32,21 +32,58 @@ public class CreateMenuRequestHandler : IRequestHandler<CreateMenuRequest, MenuD
         _context.Menus.Add(menu);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Add menu items
-        foreach (var item in request.Items)
+        // Separate top-level and child items
+        var topLevelItems = request.Items.Where(i => i.ParentId == null).ToList();
+        var childItems = request.Items.Where(i => i.ParentId != null).ToList();
+
+        // Step 1: Create all top-level items first
+        foreach (var item in topLevelItems)
         {
             var menuItem = new MenuItem
             {
                 MenuId = menu.MenuId,
                 Title = item.Title,
                 Url = item.Url,
-                ParentId = item.ParentId,
+                ParentId = null,
                 Position = item.Position
             };
             _context.MenuItems.Add(menuItem);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Step 2: Create child items (these reference existing menu_item_ids)
+        if (childItems.Any())
+        {
+            // Validate that all ParentIds exist
+            var parentIds = childItems.Select(i => i.ParentId!.Value).Distinct().ToList();
+            var existingMenuItemIds = await _context.MenuItems
+                .Where(mi => mi.MenuId == menu.MenuId && parentIds.Contains(mi.MenuItemId))
+                .Select(mi => mi.MenuItemId)
+                .ToListAsync(cancellationToken);
+
+            var invalidParentIds = parentIds.Except(existingMenuItemIds).ToList();
+            if (invalidParentIds.Any())
+            {
+                _logger.LogWarning("Invalid ParentIds found: {ParentIds}", string.Join(", ", invalidParentIds));
+                throw new InvalidOperationException($"Invalid ParentIds: {string.Join(", ", invalidParentIds)}. Parent menu items must exist.");
+            }
+
+            foreach (var item in childItems)
+            {
+                var menuItem = new MenuItem
+                {
+                    MenuId = menu.MenuId,
+                    Title = item.Title,
+                    Url = item.Url,
+                    ParentId = item.ParentId,
+                    Position = item.Position
+                };
+                _context.MenuItems.Add(menuItem);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         var createdMenu = await _context.Menus
             .Include(m => m.MenuItems)

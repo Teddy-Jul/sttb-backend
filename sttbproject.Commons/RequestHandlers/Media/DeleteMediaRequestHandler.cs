@@ -36,12 +36,31 @@ public class DeleteMediaRequestHandler : IRequestHandler<DeleteMediaRequest, boo
             throw new InvalidOperationException("Media not found");
         }
 
+        // Check if media is used as featured image in any posts
+        var postsUsingMedia = await _context.Posts
+            .Where(p => p.FeaturedImageId == request.MediaId)
+            .ToListAsync(cancellationToken);
+
+        if (postsUsingMedia.Any())
+        {
+            _logger.LogInformation("Removing media reference from {Count} posts", postsUsingMedia.Count);
+            
+            // Set featured_image_id to NULL for all posts using this media
+            foreach (var post in postsUsingMedia)
+            {
+                post.FeaturedImageId = null;
+            }
+            
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
         // Delete physical file
         if (!string.IsNullOrEmpty(media.FilePath))
         {
             await _fileStorageService.DeleteFileAsync(media.FilePath, cancellationToken);
         }
 
+        // Now safe to delete media record
         _context.Media.Remove(media);
         await _context.SaveChangesAsync(cancellationToken);
 
