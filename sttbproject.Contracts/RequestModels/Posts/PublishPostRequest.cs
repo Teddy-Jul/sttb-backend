@@ -1,5 +1,8 @@
+using MediatR;
+
 namespace sttbproject.Contracts.RequestModels.Posts;
 
-public class PublishPostRequest
+public class PublishPostRequest : IRequest<bool>
 {
+    public int PostId { get; set; }
 }
