@@ -1,9 +1,4 @@
-﻿-- ============================================
--- STTB Database Initialization Script
--- SQL Server (SSMS) Version
--- ============================================
-
--- Create Database
+﻿-- Create Database
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'sttbproject')
 BEGIN
     CREATE DATABASE sttbproject;
@@ -11,29 +6,6 @@ END
 GO
 
 USE sttbproject;
-GO
-
--- ============================================
--- DROP TABLES (for clean re-initialization)
--- ============================================
-
-IF OBJECT_ID('search_index', 'U') IS NOT NULL DROP TABLE search_index;
-IF OBJECT_ID('page_views', 'U') IS NOT NULL DROP TABLE page_views;
-IF OBJECT_ID('system_logs', 'U') IS NOT NULL DROP TABLE system_logs;
-IF OBJECT_ID('audit_logs', 'U') IS NOT NULL DROP TABLE audit_logs;
-IF OBJECT_ID('contact_messages', 'U') IS NOT NULL DROP TABLE contact_messages;
-IF OBJECT_ID('menu_items', 'U') IS NOT NULL DROP TABLE menu_items;
-IF OBJECT_ID('menus', 'U') IS NOT NULL DROP TABLE menus;
-IF OBJECT_ID('post_categories', 'U') IS NOT NULL DROP TABLE post_categories;
-IF OBJECT_ID('categories', 'U') IS NOT NULL DROP TABLE categories;
-IF OBJECT_ID('posts', 'U') IS NOT NULL DROP TABLE posts;
-IF OBJECT_ID('media', 'U') IS NOT NULL DROP TABLE media;
-IF OBJECT_ID('pages', 'U') IS NOT NULL DROP TABLE pages;
-IF OBJECT_ID('role_permissions', 'U') IS NOT NULL DROP TABLE role_permissions;
-IF OBJECT_ID('permissions', 'U') IS NOT NULL DROP TABLE permissions;
-IF OBJECT_ID('users', 'U') IS NOT NULL DROP TABLE users;
-IF OBJECT_ID('roles', 'U') IS NOT NULL DROP TABLE roles;
-IF OBJECT_ID('site_settings', 'U') IS NOT NULL DROP TABLE site_settings;
 GO
 
 -- ============================================
@@ -436,59 +408,4 @@ INSERT INTO search_index (entity_type, entity_id, title, content, updated_at) VA
 ('post', 1, 'Welcome to New Academic Year 2025/2026', 'excited welcome students academic year opportunities registration', GETDATE()),
 ('post', 2, 'Campus Library Renovation Completed', 'library renovation completed modern study spaces digital resources', GETDATE()),
 ('post', 3, 'Upcoming Theological Symposium 2026', 'Theological Symposium speakers participate', GETDATE());
-GO
-
--- ============================================
--- CREATE INDEXES FOR PERFORMANCE
--- ============================================
-
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role_id ON users(role_id);
-CREATE INDEX idx_pages_slug ON pages(slug);
-CREATE INDEX idx_pages_status ON pages(status);
-CREATE INDEX idx_posts_slug ON posts(slug);
-CREATE INDEX idx_posts_status ON posts(status);
-CREATE INDEX idx_posts_author_id ON posts(author_id);
-CREATE INDEX idx_posts_published_at ON posts(published_at);
-CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_page_views_page_id ON page_views(page_id);
-CREATE INDEX idx_search_index_entity ON search_index(entity_type, entity_id);
-CREATE INDEX idx_contact_messages_status ON contact_messages(status);
-GO
-
--- ============================================
--- VERIFICATION QUERIES
--- ============================================
-
--- Verify data insertion
-SELECT 'Roles' as table_name, COUNT(*) as record_count FROM roles
-UNION ALL
-SELECT 'Users', COUNT(*) FROM users
-UNION ALL
-SELECT 'Permissions', COUNT(*) FROM permissions
-UNION ALL
-SELECT 'Pages', COUNT(*) FROM pages
-UNION ALL
-SELECT 'Posts', COUNT(*) FROM posts
-UNION ALL
-SELECT 'Categories', COUNT(*) FROM categories
-UNION ALL
-SELECT 'Media', COUNT(*) FROM media
-UNION ALL
-SELECT 'Menus', COUNT(*) FROM menus
-UNION ALL
-SELECT 'Menu Items', COUNT(*) FROM menu_items
-UNION ALL
-SELECT 'Contact Messages', COUNT(*) FROM contact_messages;
-GO
-
--- Display summary
-PRINT '===========================================';
-PRINT 'STTB Database Initialization Complete!';
-PRINT '===========================================';
-PRINT 'Database: sttbproject';
-PRINT 'Tables Created: 17';
-PRINT 'Sample Data Loaded: Yes';
-PRINT '===========================================';
 GO
