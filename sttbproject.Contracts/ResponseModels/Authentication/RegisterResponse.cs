@@ -1,0 +1,9 @@
+namespace sttbproject.Contracts.ResponseModels.Authentication;
+
+public class RegisterResponse
+{
+    public int UserId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}

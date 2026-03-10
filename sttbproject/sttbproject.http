@@ -1,0 +1,6 @@
+@sttbproject_HostAddress = http://localhost:5117
+
+GET {{sttbproject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

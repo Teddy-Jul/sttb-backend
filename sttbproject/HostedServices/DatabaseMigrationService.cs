@@ -1,0 +1,53 @@
+﻿using Microsoft.EntityFrameworkCore;
+using sttbproject.entities;
+
+namespace sttbproject.HostedServices;
+
+public class DatabaseMigrationService : IHostedService
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<DatabaseMigrationService> _logger;
+
+    public DatabaseMigrationService(
+        IServiceProvider serviceProvider,
+        ILogger<DatabaseMigrationService> logger)
+    {
+        _serviceProvider = serviceProvider;
+        _logger = logger;
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting database migration service...");
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<SttbprojectContext>();
+
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
+            
+            if (pendingMigrations.Any())
+            {
+                _logger.LogInformation("Applying {Count} pending migrations...", pendingMigrations.Count());
+                await context.Database.MigrateAsync(cancellationToken);
+                _logger.LogInformation("Database migrations applied successfully.");
+            }
+            else
+            {
+                _logger.LogInformation("No pending migrations found.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while migrating the database.");
+            throw;
+        }
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Database migration service stopped.");
+        return Task.CompletedTask;
+    }
+}
