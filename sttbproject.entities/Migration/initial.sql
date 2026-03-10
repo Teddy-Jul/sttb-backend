@@ -228,7 +228,8 @@ INSERT INTO roles (role_id, name, description) VALUES
 (2, 'admin', 'Administrative access to manage content'),
 (3, 'editor', 'Can create, edit, and publish content'),
 (4, 'content_creator', 'Can create and edit own content'),
-(5, 'marketing', 'Manage promotions and events');
+(5, 'marketing', 'Manage promotions and events'),
+(6, 'user', 'Regular user with read-only access');
 SET IDENTITY_INSERT roles OFF;
 GO
 

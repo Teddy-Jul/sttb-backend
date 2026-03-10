@@ -9,6 +9,7 @@ using sttbproject.entities;
 
 namespace sttbproject.Commons.RequestHandlers.Authentication;
 
+
 public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterResponse>
 {
     private readonly SttbprojectContext _context;
@@ -29,14 +30,14 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
     {
         _logger.LogInformation("User registration attempt for email: {Email}", request.Email);
 
-        // Get default content_creator role (or editor if content_creator not found)
-        var defaultRole = await _context.Roles
-            .FirstOrDefaultAsync(r => r.Name == "content_creator" || r.Name == "editor", cancellationToken);
+        // Get 'user' role for regular users
+        var userRole = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Name == "user", cancellationToken);
 
-        if (defaultRole == null)
+        if (userRole == null)
         {
-            _logger.LogError("Default role not found in database");
-            throw new InvalidOperationException("System configuration error: Default role not found");
+            _logger.LogError("User role not found in database");
+            throw new InvalidOperationException("System configuration error: User role not found");
         }
 
         var user = new User
@@ -44,7 +45,7 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
             Name = request.Name,
             Email = request.Email,
             PasswordHash = _passwordHashService.HashPassword(request.Password),
-            RoleId = defaultRole.RoleId,
+            RoleId = userRole.RoleId,
             Status = UserStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
@@ -52,14 +53,14 @@ public class RegisterRequestHandler : IRequestHandler<RegisterRequest, RegisterR
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("User registered successfully with ID: {UserId}", user.UserId);
+        _logger.LogInformation("Regular user registered successfully with ID: {UserId}", user.UserId);
 
         return new RegisterResponse
         {
             UserId = user.UserId,
             Name = user.Name ?? string.Empty,
             Email = user.Email,
-            Message = "Registration successful"
+            Message = "Registration successful. Welcome!"
         };
     }
 }

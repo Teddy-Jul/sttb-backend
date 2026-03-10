@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using sttbproject.Contracts.RequestModels.Authentication;
 
@@ -19,6 +19,7 @@ public class AuthenticationController : ControllerBase
         _logger = logger;
     }
 
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request,
@@ -36,6 +37,7 @@ public class AuthenticationController : ControllerBase
         }
     }
 
+  
     [HttpPost("register")]
     public async Task<IActionResult> Register(
         [FromBody] RegisterRequest request,
@@ -49,6 +51,41 @@ public class AuthenticationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Registration failed");
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
+    [HttpPost("admin/login")]
+    public async Task<IActionResult> AdminLogin(
+        [FromBody] AdminLoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized admin login attempt");
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("admin/register")]
+    public async Task<IActionResult> AdminRegister(
+        [FromBody] AdminRegisterRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Admin registration failed");
             return BadRequest(new { message = ex.Message });
         }
     }
