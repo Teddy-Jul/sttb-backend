@@ -25,7 +25,22 @@ builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
-builder.Services.AddOpenApi();
+// Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "STTB CMS API",
+        Version = "v1",
+        Description = "Content Management System API for Sekolah Tinggi Teologi Bethel",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "STTB Development Team",
+            Email = "dev@sttb.ac.id"
+        }
+    });
+});
 
 // Database
 builder.Services.AddDbContext<SttbprojectContext>(options =>
@@ -53,7 +68,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "STTB CMS API v1");
+        options.RoutePrefix = "swagger";
+        options.DocumentTitle = "STTB CMS API Documentation";
+    });
     app.UseDeveloperExceptionPage();
 }
 
@@ -76,3 +97,4 @@ finally
 {
     Log.CloseAndFlush();
 }
+
