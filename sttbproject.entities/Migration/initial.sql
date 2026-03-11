@@ -1,4 +1,8 @@
-﻿-- ============================================
+﻿
+-- # Run this in the sttbproject.entities directory
+-- dotnet ef dbcontext scaffold "Server=localhost,1433;Database=sttbproject;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --force
+
+-- ============================================
 -- STTB Database Initialization Script
 -- SQL Server (SSMS) Version
 -- ============================================
@@ -34,6 +38,14 @@ IF OBJECT_ID('permissions', 'U') IS NOT NULL DROP TABLE permissions;
 IF OBJECT_ID('users', 'U') IS NOT NULL DROP TABLE users;
 IF OBJECT_ID('roles', 'U') IS NOT NULL DROP TABLE roles;
 IF OBJECT_ID('site_settings', 'U') IS NOT NULL DROP TABLE site_settings;
+
+IF OBJECT_ID('category_courses', 'U') IS NOT NULL DROP TABLE category_courses;
+IF OBJECT_ID('courses', 'U') IS NOT NULL DROP TABLE courses;
+IF OBJECT_ID('program_course_categories', 'U') IS NOT NULL DROP TABLE program_course_categories;
+IF OBJECT_ID('course_categories', 'U') IS NOT NULL DROP TABLE course_categories;
+IF OBJECT_ID('program_fees', 'U') IS NOT NULL DROP TABLE program_fees;
+IF OBJECT_ID('program_fee_categories', 'U') IS NOT NULL DROP TABLE program_fee_categories;
+IF OBJECT_ID('study_programs', 'U') IS NOT NULL DROP TABLE study_programs;
 GO
 
 -- ============================================
@@ -217,6 +229,83 @@ CREATE TABLE search_index (
 );
 GO
 
+CREATE TABLE study_programs (
+    program_id INT IDENTITY(1,1) PRIMARY KEY,
+    program_name NVARCHAR(200) NOT NULL,
+    degree_level NVARCHAR(20),
+    degree_title NVARCHAR(50),
+    total_credits INT,
+    study_duration NVARCHAR(100),
+    description NVARCHAR(MAX),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE course_categories (
+    category_id INT IDENTITY(1,1) PRIMARY KEY,
+    category_name NVARCHAR(200),
+    description NVARCHAR(MAX),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE program_course_categories (
+    program_category_id INT IDENTITY(1,1) PRIMARY KEY,
+    program_id INT
+        FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
+    category_id INT
+        FOREIGN KEY REFERENCES course_categories(category_id),
+    total_credits INT,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE courses (
+    course_id INT IDENTITY(1,1) PRIMARY KEY,
+    course_name NVARCHAR(255),
+    description NVARCHAR(MAX),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE category_courses (
+    category_course_id INT IDENTITY(1,1) PRIMARY KEY,
+    program_category_id INT
+        FOREIGN KEY REFERENCES program_course_categories(program_category_id)
+        ON DELETE CASCADE,
+    course_id INT
+        FOREIGN KEY REFERENCES courses(course_id),
+    credits INT,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE program_fee_categories (
+    fee_category_id INT IDENTITY(1,1) PRIMARY KEY,
+    category_name NVARCHAR(100),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE program_fees (
+    fee_id INT IDENTITY(1,1) PRIMARY KEY,
+    program_id INT
+        FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
+    fee_category_id INT
+        FOREIGN KEY REFERENCES program_fee_categories(fee_category_id),
+    fee_name NVARCHAR(200),
+    amount DECIMAL(12,2),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
 -- ============================================
 -- INSERT DUMMY DATA
 -- ============================================
@@ -271,16 +360,16 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 (5, 7), (5, 11), (5, 13);
 GO
 
-    -- Insert Users (Password: 'Password123!' - should be hashed in production)
-    SET IDENTITY_INSERT users ON;
-    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES
-    (1, 'Super Admin', 'superadmin@sttb.ac.id', '$2a$12$chFt9a6xmn3Tht8OdXeAo.fO79NmzJSrJyIaBl4WDbgEyZ2K997EC', 1, 'active'),
-    (2, 'Admin User', 'admin@sttb.ac.id', '$2a$12$HykkVxf2IqHIL9/waeG0UO7gpFG4n6xLavOClhuZjchLzd9ClNmca', 2, 'active'),
-    (3, 'Editor John', 'editor@sttb.ac.id', '$2a$12$WJYrN9n3RwAD14Mu/ytaM..bn7rkdNlnJwuQ1S9yntyL55Q6km/8i', 3, 'active'),
-    (4, 'Content Creator Jane', 'creator@sttb.ac.id', '$2a$12$.pzXkVWuHiQMPIRaRnKtAeETA2EJiEgKPtpx9gD1L6A/udyNJ42ua', 4, 'active'),
-    (5, 'Marketing Mike', 'marketing@sttb.ac.id', '$2a$12$GEucw.VbybLm9591CP7DneY7mHpbTIL284ZOs.R7h8EO9ewjlVhRq', 5, 'active');
-    SET IDENTITY_INSERT users OFF;
-    GO
+-- Insert Users (Password: 'Password123!' - should be hashed in production)
+SET IDENTITY_INSERT users ON;
+INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES
+(1, 'Super Admin', 'superadmin@sttb.ac.id', '$2a$12$chFt9a6xmn3Tht8OdXeAo.fO79NmzJSrJyIaBl4WDbgEyZ2K997EC', 1, 'active'),
+(2, 'Admin User', 'admin@sttb.ac.id', '$2a$12$HykkVxf2IqHIL9/waeG0UO7gpFG4n6xLavOClhuZjchLzd9ClNmca', 2, 'active'),
+(3, 'Editor John', 'editor@sttb.ac.id', '$2a$12$WJYrN9n3RwAD14Mu/ytaM..bn7rkdNlnJwuQ1S9yntyL55Q6km/8i', 3, 'active'),
+(4, 'Content Creator Jane', 'creator@sttb.ac.id', '$2a$12$.pzXkVWuHiQMPIRaRnKtAeETA2EJiEgKPtpx9gD1L6A/udyNJ42ua', 4, 'active'),
+(5, 'Marketing Mike', 'marketing@sttb.ac.id', '$2a$12$GEucw.VbybLm9591CP7DneY7mHpbTIL284ZOs.R7h8EO9ewjlVhRq', 5, 'active');
+SET IDENTITY_INSERT users OFF;
+GO
 
 -- Insert Site Settings
 INSERT INTO site_settings (setting_key, setting_value) VALUES
@@ -439,6 +528,453 @@ INSERT INTO search_index (entity_type, entity_id, title, content, updated_at) VA
 ('post', 3, 'Upcoming Theological Symposium 2026', 'Theological Symposium speakers participate', GETDATE());
 GO
 
+-- Insert Study Programs / Akademik
+INSERT INTO study_programs
+(program_name, degree_level, degree_title, total_credits, study_duration, description)
+VALUES
+('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi'),
+('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen'),
+('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban');
+Go
+
+-- Insert Category Course
+INSERT INTO course_categories (category_name, description) VALUES
+('Dasar Umum','Mata kuliah dasar umum'),
+('Studi Biblika','Studi Alkitab dan bahasa Alkitab'),
+('Studi Teologi','Doktrin dan teologi sistematika'),
+('Sejarah dan Budaya','Sejarah gereja dan fenomenologi agama'),
+('Praktika','Pelayanan dan praktik gereja'),
+('Konsentrasi','Mata kuliah konsentrasi program'),
+('Praktik Lapangan','Praktik pelayanan lapangan'),
+('Tugas Akhir','Artikel jurnal dan proyek akhir'),
+('Studi Pendidikan','Khusus pendidikan Kristen'),
+('Mata Kuliah Inti','Mata kuliah inti program S2'),
+('Mata Kuliah Konsentrasi','Konsentrasi S2'),
+('Mata Kuliah Elektif','Mata kuliah pilihan'),
+('Penelitian dan Tugas Akhir','Penelitian program S2'),
+('Mentoring','Mentoring akademik dan spiritual');
+GO
+
+-- Insert Program Course Categories
+INSERT INTO program_course_categories
+(program_id, category_id, total_credits)
+VALUES
+-- Program_id 1 = Sarjana Teologi
+-- Category_id 1 = Dasar Umum
+(1,1,14),
+(1,2,34),
+(1,3,23),
+(1,4,11),
+(1,5,42),
+(1,6,9),
+(1,7,9),
+(1,8,6),
+
+-- Program_id 2 = Sarjana Pendidikan Kristen
+(2,1,12),
+(2,2,29),
+(2,3,20),
+(2,9,65),
+(2,7,9),
+(2,8,7),
+
+-- Program_id 3 = Magister Teologi Pelayanan Pastoral Gereja Urban
+(3,10,15),
+(3,11,18),
+(3,12,6),
+(3,13,15),
+(3,14,2);
+GO
+
+-- Insert Course / Mata Kuliah
+INSERT INTO courses (course_name) VALUES
+('Pancasila dan Kewarganegaraan'),
+('Bahasa Indonesia'),
+('Bahasa Inggris Teologi'),
+('Metode Berpikir'),
+('Psikologi Perkembangan Masa Hidup'),
+('Metode Penulisan & Penelitian'),
+
+('Pengantar Alkitab dan Teologi Biblika'),
+('Studi PL 1: Kitab Taurat'),
+('Studi PL 2: Kitab Sejarah'),
+('Studi PL 3: Kitab Sastra'),
+('Studi PL 4: Kitab Nabi-nabi'),
+('Studi PB 1: Kitab Injil'),
+('Studi PB 2: Kis Para Rasul & Paulus'),
+('Studi PB 3: Surat Umum & Wahyu'),
+('Hermeneutika Biblika'),
+('Bahasa Ibrani'),
+('Bahasa Yunani'),
+('Bahasa Yunani Lanjutan'),
+
+('Prolegomena & Doktrin Alkitab'),
+('Doktrin Allah Penciptaan & Manusia'),
+('Doktrin Kristus, Dosa & Keselamatan'),
+('Doktrin Roh Kudus & Akhir Zaman'),
+('Doktrin Gereja'),
+('Apologetika'),
+('Etika Kristen'),
+
+('Sejarah Gereja Dunia'),
+('Sejarah Gereja Indonesia'),
+('Sejarah Teologi'),
+('Fenomenologi Agama'),
+('Iman & Kebudayaan'),
+
+('Homiletika 1'),
+('Homiletika 2'),
+('Konseling Pastoral - Dasar'),
+('Konseling Pastoral - Pastoral Issues'),
+('Misiologi'),
+('Pelayanan Penggembalaan'),
+('Kepemimpinan Kristen & Manajemen Gereja'),
+
+('Artikel Jurnal'),
+('Proyek: Merancang Program Pembinaan'),
+
+('Teologi Reformed & Injili'),
+('Asuhan Kristen'),
+('Formasi Spiritualitas'),
+('Pelayanan Ibadah & Musik'),
+('Perintisan & Pengembangan Gereja'),
+('Pelayanan Anak Transformatif'),
+('Pelayanan Kaum Muda Transformatif'),
+('Pelayanan Orang Dewasa'),
+('Pemuridan Transformatif'),
+('Perancangan Kurikulum & Program Pembinaan'),
+('Media Pembelajaran & Teknologi Pendidikan'),
+
+('Gereja & Pengembangan Masyarakat'),
+('Mobilisasi Misi'),
+('Perancangan Kurikulum Pemuridan di Gereja'),
+
+('Spiritualitas Anak'),
+('Perancangan Pelayanan Anak Urban'),
+('Pendidikan Anak Integral'),
+
+('Praktik Pelayanan Media 1'),
+('Praktik Pelayanan Media 2'),
+('Praktik Pelayanan Akhir Pekan 1'),
+('Praktik Pelayanan Akhir Pekan 2'),
+('Praktik Pelayanan Akhir Pekan 3'),
+('Praktik Pelayanan Akhir Pekan 4'),
+('Praktik Pelayanan Akhir Pekan 5'),
+('Praktik Pelayanan Misi'),
+('Praktik Pelayanan 2.5 Bulan'),
+('Praktik Pelayanan 6 Bulan'),
+
+('Sejarah & Filosofi Pendidikan Kristen'),
+
+('Teologi Asuhan Kristen'),
+('Konseling Pastoral 1 - Dasar Konseling'),
+('Konseling Pastoral 2 - Praktik Konseling Sekolah'),
+('Pelayanan Orang Tua Transformatif'),
+
+('Introduksi Pendidikan Kristen'),
+('Psikologi Pendidikan Kristen'),
+('Teologi Pendidikan Kristen'),
+('Pendidikan Kristen'),
+('Integrasi Iman & Ilmu'),
+('Integrasi Teologi dan Spiritualitas Anak dan Remaja'),
+('Kurikulum Pendidikan Kristen'),
+('Perencanaan & Evaluasi Pembelajaran'),
+('Strategi Pembelajaran'),
+('Media & Teknologi Pembelajaran'),
+('Manajemen / Administrasi Pendidikan'),
+('Micro Teaching 1'),
+('Micro Teaching 2'),
+
+('Pandangan Reformed tentang Peran Gereja Dalam Transformasi Masyarakat'),
+('Gereja Perkotaan'),
+('Sosiologi dan Misi Perkotaan'),
+('Sejarah Gereja dalam Perspektif Transformasi Sosial Budaya'),
+('Kehidupan Spiritual seorang Gembala'),
+
+('Homiletika Lanjutan'),
+('Pengembangan Gereja'),
+('Kepemimpinan & Manajemen Perubahan'),
+('Isu-isu Kontemporer Etika Kristen'),
+('Pelayanan Antar Generasi'),
+('Konseling Pastoral'),
+
+('Elektif: Pelayanan Kategorial 1'),
+('Elektif: Pelayanan Kategorial 2'),
+
+('Penulisan Akademik'),
+('Riset Praktis Dalam Pelayanan Pastoral (Kualitatif)'),
+('Praktik Pelayanan Weekend'),
+('Praktik Pelayanan 6 Bulan / Tugas Akhir Penelitian'),
+
+('Mentoring Akademik'),
+('Mentoring Spiritual I-Learn');
+GO
+
+-- ============================================
+-- Sarjana Teologi (S.Th)
+-- ============================================
+
+INSERT INTO category_courses
+(program_category_id, course_id, credits)
+VALUES
+
+-- ============================================
+-- Program Category ID 1
+-- Program : Sarjana Teologi
+-- Category : Dasar Umum
+-- ============================================
+(1,1,2),  -- Pancasila dan Kewarganegaraan
+(1,2,2),  -- Bahasa Indonesia
+(1,3,3),  -- Bahasa Inggris Teologi
+(1,4,2),  -- Metode Berpikir
+(1,5,2),  -- Psikologi Perkembangan Masa Hidup
+(1,6,3),  -- Metode Penulisan & Penelitian
+
+
+-- ============================================
+-- Program Category ID 2
+-- Program : Sarjana Teologi
+-- Category : Studi Biblika
+-- ============================================
+(2,7,3),   -- Pengantar Alkitab dan Teologi Biblika
+(2,8,3),   -- Studi PL 1: Kitab Taurat
+(2,9,3),   -- Studi PL 2: Kitab Sejarah
+(2,10,3),  -- Studi PL 3: Kitab Sastra
+(2,11,3),  -- Studi PL 4: Kitab Nabi-nabi
+(2,12,3),  -- Studi PB 1: Kitab Injil
+(2,13,3),  -- Studi PB 2: Kis Para Rasul & Paulus
+(2,14,3),  -- Studi PB 3: Surat Umum & Wahyu
+(2,15,3),  -- Hermeneutika Biblika
+(2,16,3),  -- Bahasa Ibrani
+(2,17,2),  -- Bahasa Yunani
+(2,18,2),  -- Bahasa Yunani Lanjutan
+
+
+-- ============================================
+-- Program Category ID 3
+-- Program : Sarjana Teologi
+-- Category : Studi Teologi
+-- ============================================
+(3,19,3), -- Prolegomena & Doktrin Alkitab
+(3,20,3), -- Doktrin Allah Penciptaan & Manusia
+(3,21,3), -- Doktrin Kristus, Dosa & Keselamatan
+(3,22,3), -- Doktrin Roh Kudus & Akhir Zaman
+(3,23,3), -- Doktrin Gereja
+(3,24,2), -- Apologetika
+(3,25,2), -- Etika Kristen
+(3,40,3), -- Teologi Reformed & Injili
+
+
+-- ============================================
+-- Program Category ID 4
+-- Program : Sarjana Teologi
+-- Category : Sejarah & Budaya
+-- ============================================
+(4,26,2), -- Sejarah Gereja Dunia
+(4,27,2), -- Sejarah Gereja Indonesia
+(4,28,3), -- Sejarah Teologi
+(4,29,2), -- Fenomenologi Agama
+(4,30,2), -- Iman & Kebudayaan
+
+
+-- ============================================
+-- Program Category ID 5
+-- Program : Sarjana Teologi
+-- Category : Praktika
+-- ============================================
+(5,41,2), -- Asuhan Kristen
+(5,42,2), -- Formasi Spiritualitas
+(5,31,3), -- Homiletika 1
+(5,32,3), -- Homiletika 2
+(5,43,3), -- Pelayanan Ibadah & Musik
+(5,33,2), -- Konseling Pastoral Dasar
+(5,34,2), -- Konseling Pastoral Pastoral Issues
+(5,35,3), -- Misiologi
+(5,36,2), -- Pelayanan Penggembalaan
+(5,37,2), -- Kepemimpinan Kristen & Manajemen Gereja
+(5,44,2), -- Perintisan & Pengembangan Gereja
+(5,45,3), -- Pelayanan Anak Transformatif
+(5,46,3), -- Pelayanan Kaum Muda Transformatif
+(5,47,3), -- Pelayanan Orang Dewasa
+(5,48,3), -- Pemuridan Transformatif
+(5,49,2), -- Perancangan Kurikulum & Program Pembinaan
+(5,50,2), -- Media Pembelajaran & Teknologi Pendidikan
+
+
+-- ============================================
+-- Program Category ID 6
+-- Program : Sarjana Teologi
+-- Category : Konsentrasi
+-- ============================================
+(6,51,3), -- Gereja & Pengembangan Masyarakat
+(6,52,3), -- Mobilisasi Misi
+(6,53,3), -- Perancangan Kurikulum Pemuridan di Gereja
+(6,54,3), -- Spiritualitas Anak
+(6,55,3), -- Perancangan Pelayanan Anak Urban
+(6,56,3), -- Pendidikan Anak Integral
+
+
+-- ============================================
+-- Program Category ID 7
+-- Program : Sarjana Teologi
+-- Category : Praktik Lapangan
+-- ============================================
+(7,57,0), -- Praktik Pelayanan Media 1
+(7,58,0), -- Praktik Pelayanan Media 2
+(7,59,0), -- Praktik Pelayanan Akhir Pekan 1
+(7,60,0), -- Praktik Pelayanan Akhir Pekan 2
+(7,61,0), -- Praktik Pelayanan Akhir Pekan 3
+(7,62,0), -- Praktik Pelayanan Akhir Pekan 4
+(7,63,0), -- Praktik Pelayanan Akhir Pekan 5
+(7,64,1), -- Praktik Pelayanan Misi
+(7,65,2), -- Praktik Pelayanan 2.5 Bulan
+(7,66,6), -- Praktik Pelayanan 6 Bulan
+
+
+-- ============================================
+-- Program Category ID 8
+-- Program : Sarjana Teologi
+-- Category : Tugas Akhir
+-- ============================================
+(8,38,3), -- Artikel Jurnal
+(8,39,3); -- Proyek Merancang Program Pembinaan
+
+
+-- ============================================
+-- Sarjana Pendidikan Kristen
+-- Category : Dasar Umum
+-- program_category_id = 9
+-- ============================================
+
+INSERT INTO category_courses
+(program_category_id, course_id, credits)
+VALUES
+(9,1,2),  -- Pancasila dan Kewarganegaraan
+(9,2,2),  -- Bahasa Indonesia
+(9,3,3),  -- Bahasa Inggris Teologi
+(9,5,2),  -- Psikologi Perkembangan Masa Hidup
+(9,6,3),  -- Metode Penulisan & Penelitian
+
+
+-- ============================================
+-- Sarjana Pendidikan Kristen
+-- Category : Studi Biblika
+-- program_category_id = 10
+-- ============================================
+(10,8,3),   -- Studi PL 1
+(10,9,3),   -- Studi PL 2
+(10,10,3),  -- Studi PL 3
+(10,11,3),  -- Studi PL 4
+(10,12,3),  -- Studi PB 1
+(10,13,3),  -- Studi PB 2
+(10,14,3),  -- Studi PB 3
+(10,16,3),  -- Bahasa Ibrani
+(10,17,2),  -- Bahasa Yunani
+(10,15,3),  -- Hermeneutika Biblika
+
+-- ============================================
+-- Sarjana Pendidikan Kristen
+-- Category : Studi Teologi
+-- program_category_id = 11
+-- ============================================
+(11,19,3), -- Prolegomena & Doktrin Alkitab
+(11,20,3), -- Doktrin Allah Penciptaan & Manusia
+(11,21,3), -- Doktrin Kristus
+(11,22,3), -- Doktrin Roh Kudus & Akhir Zaman
+(11,23,3), -- Doktrin Gereja
+(11,24,2), -- Apologetika
+(11,25,2), -- Etika Kristen
+
+-- ============================================
+-- Program Category ID 12
+-- Program : Sarjana Pendidikan Kristen
+-- Category : Studi Pendidikan
+-- ============================================
+(12,68,2), -- Teologi Asuhan Kristen
+(12,42,2), -- Formasi Spiritualitas
+(12,43,3), -- Pelayanan Ibadah & Musik
+(12,31,3), -- Homiletika 1
+(12,32,3), -- Homiletika 2
+(12,69,2), -- Konseling Pastoral Dasar Konseling
+(12,70,3), -- Konseling Pastoral Praktik Konseling Sekolah
+(12,48,3), -- Pemuridan Transformatif
+(12,45,3), -- Pelayanan Anak Transformatif
+(12,46,3), -- Pelayanan Kaum Muda Transformatif
+(12,71,3), -- Pelayanan Orang Tua Transformatif
+(12,72,2), -- Introduksi Pendidikan Kristen
+(12,73,3), -- Psikologi Pendidikan Kristen
+(12,74,2), -- Teologi Pendidikan Kristen
+(12,75,2), -- Pendidikan Kristen
+(12,76,3), -- Integrasi Iman & Ilmu
+(12,77,3), -- Integrasi Teologi dan Spiritualitas Anak Remaja
+(12,78,3), -- Kurikulum Pendidikan Kristen
+(12,79,3), -- Perencanaan & Evaluasi Pembelajaran
+(12,80,3), -- Strategi Pembelajaran
+(12,81,3), -- Media & Teknologi Pembelajaran
+(12,82,3), -- Manajemen Administrasi Pendidikan
+(12,83,2), -- Micro Teaching 1
+(12,84,4); -- Micro Teaching 2
+
+-- ============================================
+-- Magister Teologi Pelayanan Pastoral Gereja Urban
+-- ============================================
+
+INSERT INTO category_courses
+(program_category_id, course_id, credits)
+VALUES
+
+-- Category 15 : Mata Kuliah Inti
+(15,85,3), -- Pandangan Reformed Gereja
+(15,86,3), -- Gereja Perkotaan
+(15,87,3), -- Sosiologi dan Misi Perkotaan
+(15,88,3), -- Sejarah Gereja Transformasi Sosial
+(15,89,3), -- Kehidupan Spiritual Gembala
+
+-- Category 16 : Konsentrasi
+(16,90,3), -- Homiletika Lanjutan
+(16,91,3), -- Pengembangan Gereja
+(16,92,3), -- Kepemimpinan & Manajemen Perubahan
+(16,93,3), -- Isu Etika Kristen
+(16,94,3), -- Pelayanan Antar Generasi
+(16,95,3), -- Konseling Pastoral
+
+-- Category 17 : Elektif
+(17,96,3), -- Elektif Pelayanan Kategorial 1
+(17,97,3), -- Elektif Pelayanan Kategorial 2
+
+-- Category 18 : Penelitian
+(18,98,3),  -- Penulisan Akademik
+(18,99,3), -- Riset Praktis Pelayanan Pastoral
+(18,100,3), -- Praktik Pelayanan Weekend
+(18,101,6), -- Praktik Pelayanan 6 Bulan / Thesis
+
+-- Category 19 : Mentoring
+(19,102,1), -- Mentoring Akademik
+(19,103,1); -- Mentoring Spiritual
+
+
+INSERT INTO program_fee_categories (category_name) VALUES
+('Administrasi'),
+('Kuliah'),
+('Lain-lain');
+
+INSERT INTO program_fees
+(program_id, fee_category_id, fee_name, amount)
+VALUES
+(1,1,'Pendaftaran & Tes Masuk',500000),
+(1,1,'Administrasi Per Semester',500000),
+(1,2,'Biaya Kuliah Per Semester',9000000),
+(1,2,'Bimbingan Tugas Akhir',1500000),
+(1,3,'Wisuda',2000000),
+(1,3,'Cuti Akademik',500000),
+
+(2,1,'Pendaftaran & Tes Masuk',500000),
+(2,1,'Administrasi Per Semester',500000),
+(2,2,'Biaya Kuliah Per Semester',9000000),
+(2,2,'Bimbingan Tugas Akhir',1500000),
+(2,3,'Wisuda',2000000),
+(2,3,'Cuti Akademik',500000);
+
 -- ============================================
 -- CREATE INDEXES FOR PERFORMANCE
 -- ============================================
@@ -456,6 +992,16 @@ CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_page_views_page_id ON page_views(page_id);
 CREATE INDEX idx_search_index_entity ON search_index(entity_type, entity_id);
 CREATE INDEX idx_contact_messages_status ON contact_messages(status);
+CREATE INDEX idx_study_programs_degree_level ON study_programs(degree_level);
+CREATE INDEX idx_course_categories_name ON course_categories(category_name);
+CREATE INDEX idx_program_course_categories_program ON program_course_categories(program_id);
+CREATE INDEX idx_program_course_categories_category ON program_course_categories(category_id);
+CREATE INDEX idx_courses_name ON courses(course_name);
+CREATE INDEX idx_category_courses_program_category ON category_courses(program_category_id);
+CREATE INDEX idx_category_courses_course ON category_courses(course_id);
+CREATE INDEX idx_program_fees_program ON program_fees(program_id);
+CREATE INDEX idx_program_fees_category ON program_fees(fee_category_id);
+
 GO
 
 -- ============================================
@@ -481,8 +1027,23 @@ SELECT 'Menus', COUNT(*) FROM menus
 UNION ALL
 SELECT 'Menu Items', COUNT(*) FROM menu_items
 UNION ALL
-SELECT 'Contact Messages', COUNT(*) FROM contact_messages;
+SELECT 'Contact Messages', COUNT(*) FROM contact_messages
+UNION ALL
+SELECT 'Study Programs' AS table_name, COUNT(*) AS record_count FROM study_programs
+UNION ALL
+SELECT 'Course Categories', COUNT(*) FROM course_categories
+UNION ALL
+SELECT 'Program Course Categories', COUNT(*) FROM program_course_categories
+UNION ALL
+SELECT 'Courses', COUNT(*) FROM courses
+UNION ALL
+SELECT 'Category Courses', COUNT(*) FROM category_courses
+UNION ALL
+SELECT 'Program Fee Categories', COUNT(*) FROM program_fee_categories
+UNION ALL
+SELECT 'Program Fees', COUNT(*) FROM program_fees;
 GO
+
 
 
 select * from audit_logs
@@ -502,3 +1063,13 @@ select * from search_index
 select * from site_settings
 select * from system_logs
 select * from users
+
+SELECT * FROM study_programs;
+SELECT * FROM course_categories;
+SELECT * FROM program_course_categories;
+SELECT * FROM courses;
+SELECT * FROM category_courses;
+SELECT * FROM program_fee_categories;
+SELECT * FROM program_fees;
+GO
+
