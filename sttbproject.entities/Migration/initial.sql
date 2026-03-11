@@ -653,24 +653,36 @@ INSERT INTO study_programs
 VALUES
 ('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi'),
 ('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen'),
-('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban');
+('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban'),
+('Magister Teologi Transformasi Budaya Masyarakat','S2','M.Th',56,'2 Tahun','Program magister teologi yang berfokus pada transformasi budaya dan masyarakat'),
+('Magister Pendidikan Agama Kristen','S2','M.Pd',60,'2 Tahun','Program magister untuk pengembangan kepemimpinan dan pendidikan Kristen'),
+('Magister Ministri Marketplace','S2','M.Min',54,'2 Tahun','Program magister ministri dengan fokus pelayanan di dunia kerja dan marketplace'),
+('Magister Ministri Kepemimpinan Pastoral','S2','M.Min',45,'2 Tahun','Program kepemimpinan pastoral bagi pemimpin gereja'),
+('Magister Ministri Teologi Pelayanan Gerejawi','S2','M.Min',65,'2.5 Tahun','Program ministri untuk pengembangan pelayanan gereja secara komprehensif');
+GO
 Go
 
 -- Insert Category Course
 INSERT INTO course_categories (category_name, description) VALUES
+-- S1 Categories
 ('Dasar Umum','Mata kuliah dasar umum'),
 ('Studi Biblika','Studi Alkitab dan bahasa Alkitab'),
 ('Studi Teologi','Doktrin dan teologi sistematika'),
-('Sejarah dan Budaya','Sejarah gereja dan fenomenologi agama'),
+('Sejarah & Budaya','Sejarah gereja dan fenomenologi agama'),
 ('Praktika','Pelayanan dan praktik gereja'),
 ('Konsentrasi','Mata kuliah konsentrasi program'),
 ('Praktik Lapangan','Praktik pelayanan lapangan'),
-('Tugas Akhir','Artikel jurnal dan proyek akhir'),
-('Studi Pendidikan','Khusus pendidikan Kristen'),
+
+-- S2 Categories
+('Mata Kuliah Fondasi','Mata kuliah dasar yang memberikan landasan teologis, metodologis, dan akademik bagi mahasiswa program S2 sebelum memasuki studi lanjutan.'),
+('Fondasi Biblika','Mata kuliah yang membangun pemahaman mendalam tentang Alkitab, termasuk hermeneutika, latar belakang historis, dan metode penafsiran biblika.'),
+('Fondasi Sistematika - Historika','Mata kuliah yang membahas perkembangan doktrin Kristen secara sistematis dan historis, termasuk pemikiran teologi sepanjang sejarah gereja.'),
 ('Mata Kuliah Inti','Mata kuliah inti program S2'),
 ('Mata Kuliah Konsentrasi','Konsentrasi S2'),
 ('Mata Kuliah Elektif','Mata kuliah pilihan'),
-('Penelitian dan Tugas Akhir','Penelitian program S2'),
+('Mata Kuliah Penelitian','Mata kuliah yang mempersiapkan mahasiswa dalam metodologi penelitian teologi, penulisan akademik, serta pengembangan proposal penelitian.'),
+('Penelitian & Tugas Akhir','Penelitian program S2'),
+('Tugas Akhir','Karya ilmiah akhir berupa tesis atau penelitian akademik yang menunjukkan kemampuan analisis teologis dan metodologi penelitian mahasiswa.'),
 ('Mentoring','Mentoring akademik dan spiritual');
 GO
 
@@ -702,7 +714,64 @@ VALUES
 (3,11,18),
 (3,12,6),
 (3,13,15),
-(3,14,2);
+(3,14,2),
+
+
+-- ============================================
+-- Magister Teologi Transformasi Budaya Masyarakat
+-- ============================================
+
+(4,11,15), -- Mata Kuliah Inti
+(4,12,18), -- Mata Kuliah Konsentrasi
+(4,13,6),  -- Mata Kuliah Elektif
+(4,15,15), -- Penelitian & Tugas Akhir
+(4,17,2),  -- Mentoring
+
+
+-- ============================================
+-- Magister Pendidikan Kristen
+-- ============================================
+
+(5,8,12),  -- Mata Kuliah Fondasi
+(5,11,16), -- Mata Kuliah Inti
+(5,12,9),  -- Konsentrasi Desain Kurikulum
+(5,12,9),  -- Konsentrasi Kepemimpinan Pendidikan
+(5,13,6),  -- Mata Kuliah Elektif
+(5,14,17), -- Mata Kuliah Penelitian
+
+
+-- ============================================
+-- Magister Ministri Marketplace
+-- ============================================
+
+(6,9,9),   -- Fondasi Biblika
+(6,10,12), -- Fondasi Sistematika - Historika
+(6,11,12), -- Mata Kuliah Inti
+(6,12,6),  -- Mata Kuliah Konsentrasi
+(6,13,6),  -- Mata Kuliah Elektif
+(6,14,9),  -- Mata Kuliah Penelitian
+
+
+-- ============================================
+-- Magister Ministri Kepemimpinan Pastoral
+-- ============================================
+
+(7,9,9),   -- Fondasi Biblika
+(7,11,15), -- Mata Kuliah Inti
+(7,12,9),  -- Mata Kuliah Konsentrasi
+(7,13,3),  -- Mata Kuliah Elektif
+(7,16,9),  -- Tugas Akhir
+
+
+-- ============================================
+-- Magister Ministri Teologi Pelayanan Gerejawi
+-- ============================================
+(8,9,9),   -- Fondasi Biblika
+(8,10,12), -- Fondasi Sistematika - Historika
+(8,11,12), -- Mata Kuliah Inti
+(8,12,22), -- Mata Kuliah Konsentrasi
+(8,16,10); -- Tugas Akhir
+
 GO
 
 -- Insert Course / Mata Kuliah
@@ -826,7 +895,81 @@ INSERT INTO courses (course_name) VALUES
 ('Praktik Pelayanan 6 Bulan / Tugas Akhir Penelitian'),
 
 ('Mentoring Akademik'),
-('Mentoring Spiritual I-Learn');
+('Mentoring Spiritual I-Learn'),
+
+-- Transformasi Budaya
+('Perspektif Teologi Tentang Kemiskinan'),
+('Perspektif Teologi Tentang Dunia Kerja dan Perekonomian'),
+('Perspektif Teologi Tentang Ekologi'),
+('Perspektif Teologi Tentang Keadilan dan Kekuasaan'),
+('Perspektif Teologi Tentang Kemajemukan'),
+('Seminar Riset'),
+('Proposal Tesis'),
+('Tesis'),
+
+-- Magister Pendidikan Kristen
+('Fondasi Teologi Sistematika'),
+('Fondasi Perjanjian Baru'),
+('Fondasi Perjanjian Lama'),
+('Teologi Natur Manusia'),
+('Sejarah Filosofi dan Teologi Pendidikan Kristen'),
+('Psikologi Perkembangan dan Pendidikan'),
+('Transformasi Spiritualitas Pendidikan'),
+('Pendidikan Berbasis Keluarga'),
+('Mentoring Perjalanan Studi'),
+('Desain dan Pengembangan Kurikulum'),
+('Evaluasi Pembelajaran'),
+('Desain Strategi dan Media Pembelajaran'),
+('Fondasi Kepemimpinan Pendidikan Kristen'),
+('Manajemen Pendidikan Entrepreneurial'),
+('Pengelolaan dan Pengembangan SDM'),
+('Metodologi Pendidikan Kualitatif'),
+('Metodologi Penelitian Proyek Kreatif'),
+
+-- Marketplace
+('Spiritualitas Dunia Kerja'),
+('Pemuridan Dunia Kerja'),
+('Misi Integral Dunia Kerja'),
+('Kepemimpinan Transformasi Dunia Kerja'),
+('Teologi Kerja'),
+('Etika Kerja'),
+('Kesehatan Mental dalam Dunia Kerja'),
+('Konseling Dasar Dunia Kerja'),
+('Isu Kontemporer Dunia Kerja'),
+('Perspektif Misi Dunia'),
+('Mentoring Profesi'),
+('Proyek Tugas Akhir Marketplace'),
+
+-- Kepemimpinan Pastoral
+('Hermeneutika Lanjutan'),
+('Revisit Fondasi Biblika'),
+('Revisit Fondasi Sistematika'),
+('Spiritualitas Pemimpin Gereja'),
+('Pemuridan Gereja'),
+('Misi Integral Gereja'),
+('Kepemimpinan Transformasional Gereja'),
+('Pembinaan Spiritualitas Fase Kehidupan'),
+('Teologi Pastoral'),
+('Khotbah Ekspositori Lanjutan'),
+('Ibadah Transformatif'),
+('Perintisan dan Pertumbuhan Gereja'),
+('Manajemen Perubahan dan Konflik'),
+('Mentoring Pastoral'),
+('Tugas Akhir Pastoral'),
+
+-- Ministri Gerejawi
+('Fondasi PL Taurat'),
+('Fondasi PB Injil'),
+('Transformasi Spiritualitas'),
+('Pemuridan Gerejawi'),
+('Misi Integral Gereja'),
+('Kepemimpinan Transformasional'),
+('Studi PL Kitab Sejarah'),
+('Studi PL Kitab Puisi dan Nabi'),
+('Studi PB Para Rasul dan Surat Paulus'),
+('Studi PB Kitab Umum dan Wahyu'),
+('Teologi dan Praktik Ibadah'),
+('Tugas Akhir Praktik Pelayanan');
 GO
 
 -- ============================================
@@ -1069,14 +1212,181 @@ VALUES
 
 -- Category 19 : Mentoring
 (19,102,1), -- Mentoring Akademik
-(19,103,1); -- Mentoring Spiritual
+(19,103,1), -- Mentoring Spiritual
+
+-- ============================================
+-- Magister Teologi Transformasi Budaya Masyarakat
+-- ============================================
+-- Category 20 : Mata Kuliah Inti
+(20,104,3), -- Pandangan Reformed Tentang Peran Gereja Dalam Transformasi Masyarakat
+(20,105,3), -- Gereja Perkotaan
+(20,106,3), -- Sosiologi dan Misi Perkotaan
+(20,107,3), -- Sejarah Gereja Perspektif Transformasi Sosial Budaya
+(20,108,3), -- Kehidupan Spiritual Seorang Gembala
+
+-- Category 21 : Mata Kuliah Konsentrasi
+(21,109,3), -- Perspektif Teologi/Biblika Tentang Kemiskinan
+(21,110,3), -- Perspektif Teologi/Biblika Dunia Kerja & Perekonomian
+(21,111,3), -- Perspektif Teologi/Biblika Tentang Ekologi
+(21,112,3), -- Perspektif Teologi/Biblika Tentang Keadilan & Kekuasaan
+(21,113,3), -- Perspektif Teologi/Biblika Tentang Kemajemukan
+(21,114,3), -- Pelayanan Antar Generasi
+
+-- Category 22 : Mata Kuliah Elektif
+(22,115,3), -- Elektif 1
+(22,116,3), -- Elektif 2
+
+-- Category 23 : Penelitian & Tugas Akhir
+(23,117,3), -- Penulisan Ilmiah Akademik
+(23,118,3), -- Seminar Riset
+(23,119,3), -- Proposal
+(23,120,6), -- Tesis
+
+-- Category 24 : Mentoring
+(24,121,1), -- Mentoring Akademik
+(24,122,1), -- Mentoring Spiritual I-Learn
+
+
+-- ============================================
+-- Magister Pendidikan Kristen
+-- ============================================
+-- Category 25 : Mata Kuliah Fondasi
+(25,123,3), -- Fondasi Teologi Sistematika
+(25,124,3), -- Fondasi Perjanjian Baru
+(25,125,3), -- Fondasi Perjanjian Lama
+(25,126,3), -- Hermeneutika
+
+-- Category 26 : Mata Kuliah Inti
+(26,127,3), -- Teologi Natur Manusia
+(26,128,3), -- Sejarah Filosofi & Teologi Pendidikan Kristen
+(26,129,3), -- Psikologi Perkembangan & Pendidikan
+(26,130,3), -- Transformasi Spiritualitas Pendidikan
+(26,131,3), -- Pendidikan Berbasis Keluarga
+(26,132,1), -- Mentoring Perjalanan Studi
+
+
+-- Category 27 : Konsentrasi Desain Kurikulum
+(27,133,3), -- Desain dan Pengembangan Kurikulum
+(27,134,3), -- Evaluasi Pembelajaran
+(27,135,3), -- Desain Strategi & Media Pembelajaran
+
+
+-- Category 28 : Konsentrasi Kepemimpinan Pendidikan
+(28,136,3), -- Fondasi Kepemimpinan Pendidikan Kristen
+(28,137,3), -- Manajemen Pendidikan Entrepreneurial
+(28,138,3), -- Pengelolaan & Pengembangan SDM
+
+
+-- Category 29 : Mata Kuliah Elektif
+(29,139,3), -- Elektif 1
+(29,140,3), -- Elektif 2
+
+-- Category 30 : Mata Kuliah Penelitian
+(30,141,3), -- Penulisan Akademik
+(30,142,3), -- Metodologi Pendidikan Kualitatif
+(30,143,3), -- Metodologi Penelitian Proyek Kreatif
+(30,144,3), -- Proposal
+(30,145,8), -- Tesis / Proyek Kreatif
+
+-- ============================================
+-- Magister Ministri Marketplace
+-- ============================================
+
+-- Category 31 : Fondasi Biblika
+(31,146,3), -- Fondasi Perjanjian Lama
+(31,147,3), -- Fondasi Perjanjian Baru
+(31,148,3), -- Hermeneutika
+
+-- Category 32 : Fondasi Sistematika - Historika
+(32,149,3), -- Allah, Alkitab dan Penciptaan
+(32,150,3), -- Kristus dan Keselamatan
+(32,151,3), -- Roh Kudus dan Gereja
+(32,152,3), -- Gereja dalam Konteks Sosio-Historis
+
+-- Category 33 : Mata Kuliah Inti
+(33,153,3), -- Spiritualitas Dunia Kerja
+(33,154,3), -- Pemuridan Dunia Kerja
+(33,155,3), -- Misi Integral Dunia Kerja
+(33,156,3), -- Kepemimpinan Transformasi Dunia Kerja
+
+-- Category 34 : Mata Kuliah Konsentrasi
+(34,157,3), -- Teologi Kerja
+(34,158,3), -- Etika Kerja
+
+-- Category 35 : Mata Kuliah Elektif
+(35,159,3), -- Kesehatan Mental dalam Dunia Kerja
+(35,160,3), -- Konseling Dasar untuk Dunia Kerja
+(35,161,3), -- Isu Kontemporer Dunia Kerja
+(35,162,3), -- Perspektif Misi Dunia
+(35,163,3), -- Mata Kuliah Prodi S2 Lain
+
+-- Category 36 : Penelitian / Proyek
+(36,164,3), -- Mentoring Profesi
+(36,165,6), -- Proyek Tugas Akhir
+
+-- ============================================
+-- Magister Ministri Kepemimpinan Pastoral
+-- ============================================
+
+-- Category 37 : Fondasi Biblika
+(37,141,3), -- Hermeneutika Lanjutan
+(37,142,3), -- Revisit Fondasi Biblika
+(37,143,3), -- Revisit Fondasi Sistematika
+
+-- Category 38 : Mata Kuliah Inti
+(38,144,3), -- Spiritualitas Pemimpin Gereja
+(38,145,3), -- Pemuridan Gereja
+(38,146,3), -- Misi Integral Gereja
+(38,147,3), -- Kepemimpinan Transformasional Gereja
+(38,148,3), -- Pembinaan Spiritualitas Fase Kehidupan
+
+-- Category 39 : Mata Kuliah Konsentrasi
+(39,149,3), -- Teologi Pastoral
+(39,150,3), -- Khotbah Ekspositori Lanjutan
+(39,151,3), -- Ibadah Transformatif
+
+-- Category 40 : Mata Kuliah Elektif
+(40,152,3), -- Perintisan dan Pertumbuhan Gereja
+(40,153,3), -- Manajemen Perubahan dan Konflik
+
+-- Category 41 : Penelitian / Proyek
+(41,154,3), -- Mentoring Pastoral
+(41,155,6), -- Tugas Akhir Pastoral
+
+-- ============================================
+-- Magister Ministri Teologi Pelayanan Gerejawi
+-- ============================================
+
+-- Category 42 : Fondasi Biblika
+(42,156,3), -- Fondasi PL Taurat
+(42,157,3), -- Fondasi PB Injil
+(42,158,3), -- Transformasi Spiritualitas
+
+-- Category 43 : Fondasi Sistematika - Historika
+(43,159,3), -- Pemuridan Gerejawi
+(43,160,3), -- Misi Integral Gereja
+(43,161,3), -- Kepemimpinan Transformasional
+(43,162,3), -- Studi PL Kitab Sejarah
+
+-- Category 44 : Mata Kuliah Inti
+(44,163,3), -- Studi PL Kitab Puisi dan Nabi
+(44,164,3), -- Studi PB Para Rasul dan Surat Paulus
+(44,165,3), -- Studi PB Kitab Umum dan Wahyu
+(44,166,3), -- Teologi dan Praktik Ibadah
+
+-- Category 45 : Mata Kuliah Konsentrasi
+(45,167,3), -- Tugas Akhir Praktik Pelayanan
+
+-- Category 46 : Penelitian / Tugas Akhir
+(46,102,1), -- Mentoring Akademik
+(46,98,3),  -- Penulisan Akademik
+(46,167,6); -- Tugas Akhir Praktik Pelayanan
 
 
 INSERT INTO program_fee_categories (category_name) VALUES
 ('Administrasi'),
 ('Kuliah'),
 ('Lain-lain');
-
 INSERT INTO program_fees
 (program_id, fee_category_id, fee_name, amount)
 VALUES

@@ -24,6 +24,7 @@ public class GetCourseListRequestHandler : IRequestHandler<GetCourseListRequest,
     {
         var query = _context.Courses.AsQueryable();
 
+        // Apply search filter
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(c => c.CourseName!.Contains(request.SearchTerm) || 
@@ -32,8 +33,9 @@ public class GetCourseListRequestHandler : IRequestHandler<GetCourseListRequest,
 
         var totalCount = await query.CountAsync(cancellationToken);
 
+        // Always order by CourseId ascending
         var courses = await query
-            .OrderBy(c => c.CourseName)
+            .OrderBy(c => c.CourseId)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(c => new CourseListItem
@@ -45,7 +47,7 @@ public class GetCourseListRequestHandler : IRequestHandler<GetCourseListRequest,
             })
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Retrieved {Count} courses", courses.Count);
+        _logger.LogInformation("Retrieved {Count} courses ordered by CourseId ascending", courses.Count);
 
         return new GetCourseListResponse
         {
