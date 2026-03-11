@@ -20,7 +20,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
         services.AddScoped<ISlugService, SlugService>();
+        services.AddScoped<IPermissionService, PermissionService>();
 
         return services;
     }
 }
+

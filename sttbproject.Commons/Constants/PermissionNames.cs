@@ -35,4 +35,23 @@ public static class PermissionNames
     // Contact Messages
     public const string MessagesView = "messages.view";
     public const string MessagesManage = "messages.manage";
+
+    // Study Programs Management
+    public const string ProgramsView = "programs.view";
+    public const string ProgramsCreate = "programs.create";
+    public const string ProgramsEdit = "programs.edit";
+    public const string ProgramsDelete = "programs.delete";
+    public const string ProgramsManage = "programs.manage"; // Full access
+
+    // Courses Management
+    public const string CoursesView = "courses.view";
+    public const string CoursesCreate = "courses.create";
+    public const string CoursesEdit = "courses.edit";
+    public const string CoursesDelete = "courses.delete";
+    public const string CoursesManage = "courses.manage"; // Full access
+
+    // Program Fees Management
+    public const string ProgramFeesView = "program_fees.view";
+    public const string ProgramFeesManage = "program_fees.manage";
 }
+

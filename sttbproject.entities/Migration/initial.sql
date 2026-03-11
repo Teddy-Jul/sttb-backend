@@ -1,8 +1,4 @@
-﻿
--- # Run this in the sttbproject.entities directory
--- dotnet ef dbcontext scaffold "Server=localhost,1433;Database=sttbproject;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --force
-
--- ============================================
+﻿-- ============================================
 -- STTB Database Initialization Script
 -- SQL Server (SSMS) Version
 -- ============================================
@@ -337,27 +333,150 @@ INSERT INTO permissions (permission_id, name, description) VALUES
 (10, 'delete_articles', 'Delete blog articles'),
 (11, 'manage_events', 'Create and manage events'),
 (12, 'manage_menu', 'Manage navigation menus'),
-(13, 'view_analytics', 'View website analytics');
+(13, 'view_analytics', 'View website analytics'),
+(14, 'programs.view', 'View study programs'),
+(15, 'programs.create', 'Create new study programs'),
+(16, 'programs.edit', 'Edit existing study programs'),
+(17, 'programs.delete', 'Delete study programs'),
+(18, 'programs.manage', 'Full management access to study programs'),
+
+-- Insert new permissions for Courses
+(19, 'courses.view', 'View courses'),
+(20, 'courses.create', 'Create new courses'),
+(21, 'courses.edit', 'Edit existing courses'),
+(22, 'courses.delete', 'Delete courses'),
+(23, 'courses.manage', 'Full management access to courses'),
+
+-- Insert new permissions for Program Fees
+(24, 'program_fees.view', 'View program fees'),
+(25, 'program_fees.manage', 'Manage program fees');
 SET IDENTITY_INSERT permissions OFF;
 GO
 
--- Insert Role Permissions
--- Super Admin gets all permissions
+-- ============================================
+-- ASSIGN PERMISSIONS TO ROLES
+-- ============================================
+
+-- ============================================
+-- SUPER ADMIN (role_id = 1)
+-- gets ALL permissions
+-- ============================================
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 1, permission_id FROM permissions;
+SELECT 1, permission_id
+FROM permissions
+WHERE NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 1 
+    AND rp.permission_id = permissions.permission_id
+);
 
--- Admin/Editor permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-(2, 4), (2, 5), (2, 6), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), -- admin
-(3, 5), (3, 6), (3, 7), (3, 8), (3, 9), (3, 10), (3, 13); -- editor
 
--- Content Creator permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-(4, 7), (4, 8), (4, 9);
 
--- Marketing permissions
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-(5, 7), (5, 11), (5, 13);
+-- ============================================
+-- ADMIN (role_id = 2)
+-- full management access
+-- ============================================
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 2, permission_id
+FROM permissions
+WHERE name IN (
+    'programs.view','programs.create','programs.edit','programs.delete','programs.manage',
+    'courses.view','courses.create','courses.edit','courses.delete','courses.manage',
+    'program_fees.view','program_fees.manage'
+)
+AND NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 2 
+    AND rp.permission_id = permissions.permission_id
+);
+
+
+
+-- ============================================
+-- EDITOR (role_id = 3)
+-- view + edit only
+-- ============================================
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 3, permission_id
+FROM permissions
+WHERE name IN (
+    'programs.view','programs.edit',
+    'courses.view','courses.edit',
+    'program_fees.view'
+)
+AND NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 3 
+    AND rp.permission_id = permissions.permission_id
+);
+
+
+
+-- ============================================
+-- CONTENT CREATOR (role_id = 4)
+-- view content only
+-- ============================================
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, permission_id
+FROM permissions
+WHERE name IN (
+    'programs.view',
+    'courses.view',
+    'program_fees.view'
+)
+AND NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 4 
+    AND rp.permission_id = permissions.permission_id
+);
+
+
+
+-- ============================================
+-- MARKETING (role_id = 5)
+-- marketing + program fees visibility
+-- ============================================
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 5, permission_id
+FROM permissions
+WHERE name IN (
+    'programs.view',
+    'courses.view',
+    'program_fees.view',
+    'program_fees.manage'
+)
+AND NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 5 
+    AND rp.permission_id = permissions.permission_id
+);
+
+
+
+-- ============================================
+-- REGULAR USER (role_id = 6)
+-- view only
+-- ============================================
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 6, permission_id
+FROM permissions
+WHERE name IN (
+    'programs.view',
+    'courses.view',
+    'program_fees.view'
+)
+AND NOT EXISTS (
+    SELECT 1 
+    FROM role_permissions rp
+    WHERE rp.role_id = 6 
+    AND rp.permission_id = permissions.permission_id
+);
+
 GO
 
 -- Insert Users (Password: 'Password123!' - should be hashed in production)
@@ -1072,4 +1191,3 @@ SELECT * FROM category_courses;
 SELECT * FROM program_fee_categories;
 SELECT * FROM program_fees;
 GO
-
