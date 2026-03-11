@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using sttbproject.Contracts.RequestModels.StudyPrograms;
 
@@ -42,6 +42,24 @@ public class StudyProgramsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Study program not found: {ProgramId}", programId);
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBySlug(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetStudyProgramBySlugRequest { Slug = slug };
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Study program not found: {Slug}", slug);
             return NotFound(new { message = ex.Message });
         }
     }

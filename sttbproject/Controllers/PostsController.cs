@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using sttbproject.Contracts.RequestModels.Posts;
 
@@ -26,6 +26,42 @@ public class PostsController : ControllerBase
     {
         var result = await _mediator.Send(request, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpGet("{postId}")]
+    public async Task<IActionResult> GetById(
+        int postId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetPostByIdRequest { PostId = postId };
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Post not found: {PostId}", postId);
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBySlug(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetPostBySlugRequest { Slug = slug };
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Post not found: {Slug}", slug);
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost("create")]

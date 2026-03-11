@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -591,6 +591,9 @@ public partial class SttbprojectContext : DbContext
             entity.Property(e => e.ProgramName)
                 .HasMaxLength(200)
                 .HasColumnName("program_name");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(200)
+                .HasColumnName("slug");
             entity.Property(e => e.StudyDuration)
                 .HasMaxLength(100)
                 .HasColumnName("study_duration");

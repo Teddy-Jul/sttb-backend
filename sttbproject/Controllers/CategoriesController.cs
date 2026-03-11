@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using sttbproject.Contracts.RequestModels.Categories;
 
@@ -26,6 +26,42 @@ public class CategoriesController : ControllerBase
     {
         var result = await _mediator.Send(request, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpGet("{categoryId}")]
+    public async Task<IActionResult> GetById(
+        int categoryId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetCategoryByIdRequest { CategoryId = categoryId };
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Category not found: {CategoryId}", categoryId);
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBySlug(
+        string slug,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetCategoryBySlugRequest { Slug = slug };
+            var result = await _mediator.Send(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Category not found: {Slug}", slug);
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost("create")]
