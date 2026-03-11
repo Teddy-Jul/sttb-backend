@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using sttbproject.Contracts.RequestModels.Categories;
+using sttbproject.Contracts.ResponseModels.Categories;
 
 namespace sttbproject.Controllers;
 

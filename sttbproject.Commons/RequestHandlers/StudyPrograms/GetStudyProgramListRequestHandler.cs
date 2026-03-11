@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using sttbproject.Contracts.RequestModels.StudyPrograms;
@@ -49,6 +49,8 @@ public class GetStudyProgramListRequestHandler : IRequestHandler<GetStudyProgram
                 DegreeTitle = p.DegreeTitle,
                 TotalCredits = p.TotalCredits,
                 StudyDuration = p.StudyDuration,
+                Description = p.Description,
+                Slug = p.Slug,
                 CreatedAt = p.CreatedAt
             })
             .ToListAsync(cancellationToken);

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using sttbproject.Contracts.RequestModels.StudyPrograms;
@@ -49,6 +49,7 @@ public class GetStudyProgramByIdRequestHandler : IRequestHandler<GetStudyProgram
             TotalCredits = program.TotalCredits,
             StudyDuration = program.StudyDuration,
             Description = program.Description,
+            Slug = program.Slug,
             CreatedAt = program.CreatedAt,
             UpdatedAt = program.UpdatedAt,
             CourseCategories = program.ProgramCourseCategories.Select(pcc => new ProgramCourseCategoryInfo

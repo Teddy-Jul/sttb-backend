@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,5 +22,7 @@ public class StudyProgramListItem
     public string? DegreeTitle { get; set; }
     public int? TotalCredits { get; set; }
     public string? StudyDuration { get; set; }
+    public string? Description { get; set; }
+    public string? Slug { get; set; }
     public DateTime? CreatedAt { get; set; }
 }

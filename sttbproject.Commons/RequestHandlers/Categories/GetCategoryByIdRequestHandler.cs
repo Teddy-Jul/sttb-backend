@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using sttbproject.Contracts.RequestModels.Categories;
 using sttbproject.Contracts.ResponseModels.Categories;
 using sttbproject.entities;

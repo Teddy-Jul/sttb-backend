@@ -1,3 +1,6 @@
+/// <summary>
+/// Request to get a post by its ID.
+/// </summary>
 using MediatR;
 using sttbproject.Contracts.ResponseModels.Posts;
 
