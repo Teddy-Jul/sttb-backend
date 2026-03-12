@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.Media;
 
 namespace sttbproject.Controllers;
@@ -11,13 +12,16 @@ namespace sttbproject.Controllers;
 public class MediaController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<MediaController> _logger;
 
     public MediaController(
         IMediator mediator,
+        IFileStorageService fileStorageService,
         ILogger<MediaController> logger)
     {
         _mediator = mediator;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -89,6 +93,40 @@ public class MediaController : ControllerBase
         {
             _logger.LogWarning(ex, "Media not found: {MediaId}", mediaId);
             return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Streams a media file directly from storage (R2 or local) by media ID.
+    /// This endpoint is intentionally public — images should be accessible without auth.
+    /// </summary>
+    [HttpGet("{mediaId}/file")]
+    public async Task<IActionResult> ServeFile(
+        int mediaId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetMediaByIdRequest { MediaId = mediaId };
+            var media = await _mediator.Send(request, cancellationToken);
+
+            if (string.IsNullOrEmpty(media.FilePath))
+                return NotFound(new { message = "File path not found" });
+
+            var stream = await _fileStorageService.GetFileAsync(media.FilePath, cancellationToken);
+            var contentType = string.IsNullOrEmpty(media.FileType) ? "application/octet-stream" : media.FileType;
+
+            Response.Headers["Cache-Control"] = "public, max-age=86400";
+            return File(stream, contentType, enableRangeProcessing: true);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Media not found: {MediaId}", mediaId);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound(new { message = "File not found in storage" });
         }
     }
 }

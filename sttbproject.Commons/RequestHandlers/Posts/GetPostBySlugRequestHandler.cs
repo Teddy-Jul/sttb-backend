@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.Posts;
 using sttbproject.Contracts.ResponseModels.Posts;
 using sttbproject.entities;
@@ -10,13 +11,16 @@ namespace sttbproject.Commons.RequestHandlers.Posts;
 public class GetPostBySlugRequestHandler : IRequestHandler<GetPostBySlugRequest, PostDetailResponse>
 {
     private readonly SttbprojectContext _context;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<GetPostBySlugRequestHandler> _logger;
 
     public GetPostBySlugRequestHandler(
         SttbprojectContext context,
+        IFileStorageService fileStorageService,
         ILogger<GetPostBySlugRequestHandler> logger)
     {
         _context = context;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -45,7 +49,9 @@ public class GetPostBySlugRequestHandler : IRequestHandler<GetPostBySlugRequest,
             AuthorId = post.AuthorId ?? 0,
             AuthorName = post.Author?.Name ?? string.Empty,
             FeaturedImageId = post.FeaturedImageId,
-            FeaturedImageUrl = post.FeaturedImage?.FileName,
+            FeaturedImageUrl = post.FeaturedImage != null
+                ? _fileStorageService.GetFileUrl(post.FeaturedImage.FilePath ?? string.Empty)
+                : null,
             Categories = post.Categories.Select(c => new CategoryInfo
             {
                 CategoryId = c.CategoryId,
