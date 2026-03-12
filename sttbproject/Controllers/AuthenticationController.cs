@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.Authentication;
 
 namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("auth")] 
 public class AuthenticationController : ControllerBase
 {
     private readonly IMediator _mediator;

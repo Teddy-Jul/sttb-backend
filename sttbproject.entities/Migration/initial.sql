@@ -515,16 +515,16 @@ INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at
 SET IDENTITY_INSERT pages OFF;
 GO
 
--- Insert Media
-SET IDENTITY_INSERT media ON;
-INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
-(1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
-(2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
-(3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
-(4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
-(5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
-SET IDENTITY_INSERT media OFF;
-GO
+-- Insert Media [have to input manual via API]
+-- SET IDENTITY_INSERT media ON;
+-- INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
+-- (1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
+-- (2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
+-- (3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
+-- (4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
+-- (5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
+-- SET IDENTITY_INSERT media OFF;
+-- GO
 
 -- Insert Categories
 SET IDENTITY_INSERT categories ON;

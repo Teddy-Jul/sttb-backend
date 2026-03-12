@@ -1,11 +1,13 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.Pages;
 
 namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("general")]
 public class PagesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -65,6 +67,7 @@ public class PagesController : ControllerBase
     }
 
     [HttpPost("create")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(
         [FromBody] CreatePageRequest request,
         CancellationToken cancellationToken)
@@ -82,6 +85,7 @@ public class PagesController : ControllerBase
     }
 
     [HttpPut("update")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Update(
         [FromBody] UpdatePageRequest request,
         CancellationToken cancellationToken)
@@ -104,6 +108,7 @@ public class PagesController : ControllerBase
     }
 
     [HttpDelete("{pageId}")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Delete(
         int pageId,
         CancellationToken cancellationToken)
@@ -122,6 +127,7 @@ public class PagesController : ControllerBase
     }
 
     [HttpPost("{pageId}/publish")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Publish(
         int pageId,
         CancellationToken cancellationToken)

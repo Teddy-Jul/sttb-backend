@@ -1,11 +1,13 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.ContactMessages;
 
 namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("general")]
 public class ContactMessagesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -47,6 +49,7 @@ public class ContactMessagesController : ControllerBase
     }
 
     [HttpPost("create")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(
         [FromBody] CreateContactMessageRequest request,
         CancellationToken cancellationToken)
@@ -64,6 +67,7 @@ public class ContactMessagesController : ControllerBase
     }
 
     [HttpPatch("{contactMessageId}/status")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> UpdateStatus(
         int contactMessageId,
         [FromBody] UpdateContactMessageStatusRequest request,
@@ -83,6 +87,7 @@ public class ContactMessagesController : ControllerBase
     }
 
     [HttpDelete("{contactMessageId}")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Delete(
         int contactMessageId,
         CancellationToken cancellationToken)

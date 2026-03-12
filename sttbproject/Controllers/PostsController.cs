@@ -1,11 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.Posts;
 
 namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("general")]
 public class PostsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -65,6 +67,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPost("create")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(
         [FromBody] CreatePostRequest request,
         CancellationToken cancellationToken)
@@ -87,6 +90,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPut("update")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Update(
         [FromBody] UpdatePostRequest request,
         CancellationToken cancellationToken)
@@ -109,6 +113,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpDelete("{postId}")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Delete(
         int postId,
         CancellationToken cancellationToken)
@@ -127,6 +132,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPost("{postId}/publish")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Publish(
         int postId,
         CancellationToken cancellationToken)

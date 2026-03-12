@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.Categories;
 using sttbproject.Contracts.ResponseModels.Categories;
 
@@ -7,6 +8,7 @@ namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("general")]
 public class CategoriesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -66,6 +68,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost("create")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(
         [FromBody] CreateCategoryRequest request,
         CancellationToken cancellationToken)
@@ -83,6 +86,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("update")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Update(
         [FromBody] UpdateCategoryRequest request,
         CancellationToken cancellationToken)
@@ -105,6 +109,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{categoryId}")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Delete(
         int categoryId,
         CancellationToken cancellationToken)

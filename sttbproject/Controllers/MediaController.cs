@@ -1,11 +1,13 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using sttbproject.Contracts.RequestModels.Media;
 
 namespace sttbproject.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("general")] // Apply general rate limit to all endpoints
 public class MediaController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -46,10 +48,8 @@ public class MediaController : ControllerBase
         }
     }
 
-    /// <param name="request">Upload request containing file and user ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Upload result with file URL</returns>
     [HttpPost("upload")]
+    [EnableRateLimiting("upload")] // Stricter limit for uploads
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB
     public async Task<IActionResult> Upload(
@@ -74,6 +74,7 @@ public class MediaController : ControllerBase
     }
 
     [HttpDelete("{mediaId}")]
+    [EnableRateLimiting("write")] // Use write policy for delete
     public async Task<IActionResult> Delete(
         int mediaId,
         CancellationToken cancellationToken)
