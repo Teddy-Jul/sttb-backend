@@ -516,15 +516,19 @@ SET IDENTITY_INSERT pages OFF;
 GO
 
 -- Insert Media [have to input manual via API]
--- SET IDENTITY_INSERT media ON;
--- INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
+SET IDENTITY_INSERT media ON;
+INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
+(1,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1),
+(1,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1);
+
+-- Dummy Data VV
 -- (1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
 -- (2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
 -- (3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
 -- (4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
 -- (5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
--- SET IDENTITY_INSERT media OFF;
--- GO
+SET IDENTITY_INSERT media OFF;
+GO
 
 -- Insert Categories
 SET IDENTITY_INSERT categories ON;
@@ -1522,4 +1526,5 @@ SELECT * FROM category_courses;
 SELECT * FROM program_fee_categories;
 SELECT * FROM program_fees;
 GO
+
 
