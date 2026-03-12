@@ -518,15 +518,15 @@ GO
 -- Insert Media [have to input manual via API]
 SET IDENTITY_INSERT media ON;
 INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
-(1,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1),
-(1,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1);
+(6,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1),
+(7,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1),
 
 -- Dummy Data VV
--- (1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
--- (2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
--- (3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
--- (4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
--- (5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
+(1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
+(2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
+(3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
+(4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
+(5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
 SET IDENTITY_INSERT media OFF;
 GO
 
@@ -543,43 +543,43 @@ SET IDENTITY_INSERT categories OFF;
 GO
 
 -- Insert Posts
---SET IDENTITY_INSERT posts ON;
---INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
---(1, 'Welcome to New Academic Year 2025/2026', 'welcome-academic-year-2025-2026', 
--- '<p>We are excited to welcome all students to the new academic year. This year brings new opportunities and challenges.</p><p>Registration begins March 15, 2026.</p>', 
--- 'Welcome message for the new academic year starting March 2026', 
--- 1, 'published', 3, '2026-03-01 09:00:00', '2026-02-28 10:00:00'),
+SET IDENTITY_INSERT posts ON;
+INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+(1, 'Welcome to New Academic Year 2025/2026', 'welcome-academic-year-2025-2026', 
+ '<p>We are excited to welcome all students to the new academic year. This year brings new opportunities and challenges.</p><p>Registration begins March 15, 2026.</p>', 
+ 'Welcome message for the new academic year starting March 2026', 
+ 1, 'published', 3, '2026-03-01 09:00:00', '2026-02-28 10:00:00'),
 
---(2, 'Campus Library Renovation Completed', 'library-renovation-completed',
--- '<p>Our state-of-the-art library renovation has been completed, featuring modern study spaces and digital resources.</p>',
--- 'The campus library has undergone a major renovation with new facilities',
--- 4, 'published', 3, '2026-02-15 14:00:00', '2026-02-14 11:00:00'),
+(2, 'Campus Library Renovation Completed', 'library-renovation-completed',
+ '<p>Our state-of-the-art library renovation has been completed, featuring modern study spaces and digital resources.</p>',
+ 'The campus library has undergone a major renovation with new facilities',
+ 4, 'published', 3, '2026-02-15 14:00:00', '2026-02-14 11:00:00'),
 
---(3, 'Upcoming Theological Symposium 2026', 'theological-symposium-2026',
--- '<p>Join us for our annual Theological Symposium on March 25-27, 2026. Distinguished speakers from around the world will participate.</p>',
--- 'Annual theological symposium announcement with international speakers',
--- 2, 'published', 5, '2026-02-20 10:00:00', '2026-02-19 09:00:00'),
+(3, 'Upcoming Theological Symposium 2026', 'theological-symposium-2026',
+ '<p>Join us for our annual Theological Symposium on March 25-27, 2026. Distinguished speakers from around the world will participate.</p>',
+ 'Annual theological symposium announcement with international speakers',
+ 2, 'published', 5, '2026-02-20 10:00:00', '2026-02-19 09:00:00'),
 
---(4, 'Student Research Excellence Awards', 'student-research-awards',
--- '<p>Congratulations to our students who received excellence awards for their outstanding research contributions.</p>',
--- 'Students honored for their exceptional research work',
--- 3, 'published', 3, '2026-03-05 15:00:00', '2026-03-04 12:00:00'),
+(4, 'Student Research Excellence Awards', 'student-research-awards',
+ '<p>Congratulations to our students who received excellence awards for their outstanding research contributions.</p>',
+ 'Students honored for their exceptional research work',
+ 3, 'published', 3, '2026-03-05 15:00:00', '2026-03-04 12:00:00'),
 
---(5, 'Registration for Strata 2 Program Now Open', 'strata-2-registration-open',
--- '<p>Applications for our Strata 2 (Master''s) program are now being accepted. Deadline is April 30, 2026.</p>',
--- 'Master''s program registration announcement for 2026 intake',
--- 5, 'published', 5, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
---SET IDENTITY_INSERT posts OFF;
---GO
+(5, 'Registration for Strata 2 Program Now Open', 'strata-2-registration-open',
+ '<p>Applications for our Strata 2 (Master''s) program are now being accepted. Deadline is April 30, 2026.</p>',
+ 'Master''s program registration announcement for 2026 intake',
+ 5, 'published', 5, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
+SET IDENTITY_INSERT posts OFF;
+GO
 
 -- Insert Post Categories
---INSERT INTO post_categories (post_id, category_id) VALUES
---(1, 1), (1, 4), -- Campus News, Announcements
---(2, 1), (2, 5), -- Campus News, Student Life
---(3, 3), (3, 2), -- Events, Academic
---(4, 5), (4, 6), -- Student Life, Research
---(5, 4), (5, 2); -- Announcements, Academic
---GO
+INSERT INTO post_categories (post_id, category_id) VALUES
+(1, 1), (1, 4), -- Campus News, Announcements
+(2, 1), (2, 5), -- Campus News, Student Life
+(3, 3), (3, 2), -- Events, Academic
+(4, 5), (4, 6), -- Student Life, Research
+(5, 4), (5, 2); -- Announcements, Academic
+GO
 
 -- Insert Menus
 SET IDENTITY_INSERT menus ON;
