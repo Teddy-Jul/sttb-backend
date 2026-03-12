@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using sttbproject.entities;
 
 namespace sttbproject.HostedServices;
@@ -37,6 +37,27 @@ public class DatabaseMigrationService : IHostedService
             {
                 _logger.LogInformation("No pending migrations found.");
             }
+
+            // Auto-patch: Add 'slug' column to 'study_programs' if it doesn't exist
+            _logger.LogInformation("Checking for database schema patches...");
+            
+            var addColumnSql = @"
+                IF NOT EXISTS (SELECT * FROM sys.columns 
+                               WHERE Name = N'slug' 
+                               AND Object_ID = Object_ID(N'study_programs'))
+                BEGIN
+                    ALTER TABLE study_programs ADD slug NVARCHAR(200) NULL;
+                END";
+            
+            await context.Database.ExecuteSqlRawAsync(addColumnSql, cancellationToken);
+
+            var populateSlugSql = @"
+                UPDATE study_programs 
+                SET slug = LOWER(REPLACE(REPLACE(REPLACE(program_name, ' ', '-'), '.', ''), '(', ''))
+                WHERE slug IS NULL;";
+            
+            await context.Database.ExecuteSqlRawAsync(populateSlugSql, cancellationToken);
+            _logger.LogInformation("Database schema patches checked/applied.");
         }
         catch (Exception ex)
         {

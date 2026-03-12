@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace sttbproject.entities;
@@ -18,6 +18,8 @@ public partial class StudyProgram
     public string? StudyDuration { get; set; }
 
     public string? Description { get; set; }
+
+    public string? Slug { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

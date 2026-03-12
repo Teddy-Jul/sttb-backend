@@ -7,22 +7,22 @@ using sttbproject.entities;
 
 namespace sttbproject.Commons.RequestHandlers.StudyPrograms;
 
-public class GetStudyProgramByIdRequestHandler : IRequestHandler<GetStudyProgramByIdRequest, StudyProgramDetailResponse>
+public class GetStudyProgramBySlugRequestHandler : IRequestHandler<GetStudyProgramBySlugRequest, StudyProgramDetailResponse>
 {
     private readonly SttbprojectContext _context;
-    private readonly ILogger<GetStudyProgramByIdRequestHandler> _logger;
+    private readonly ILogger<GetStudyProgramBySlugRequestHandler> _logger;
 
-    public GetStudyProgramByIdRequestHandler(
+    public GetStudyProgramBySlugRequestHandler(
         SttbprojectContext context,
-        ILogger<GetStudyProgramByIdRequestHandler> logger)
+        ILogger<GetStudyProgramBySlugRequestHandler> logger)
     {
         _context = context;
         _logger = logger;
     }
 
-    public async Task<StudyProgramDetailResponse> Handle(GetStudyProgramByIdRequest request, CancellationToken cancellationToken)
+    public async Task<StudyProgramDetailResponse> Handle(GetStudyProgramBySlugRequest request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Getting study program by ID: {ProgramId}", request.ProgramId);
+        _logger.LogInformation("Getting study program by Slug: {Slug}", request.Slug);
 
         var program = await _context.StudyPrograms
             .Include(p => p.ProgramCourseCategories)
@@ -32,11 +32,11 @@ public class GetStudyProgramByIdRequestHandler : IRequestHandler<GetStudyProgram
                     .ThenInclude(cc => cc.Course)
             .Include(p => p.ProgramFees)
                 .ThenInclude(pf => pf.FeeCategory)
-            .FirstOrDefaultAsync(p => p.ProgramId == request.ProgramId, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Slug == request.Slug, cancellationToken);
 
         if (program == null)
         {
-            _logger.LogWarning("Study program not found: {ProgramId}", request.ProgramId);
+            _logger.LogWarning("Study program not found: {Slug}", request.Slug);
             throw new InvalidOperationException("Study program not found");
         }
 

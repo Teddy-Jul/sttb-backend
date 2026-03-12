@@ -1,4 +1,4 @@
-﻿-- ============================================
+-- ============================================
 -- STTB Database Initialization Script
 -- SQL Server (SSMS) Version
 -- ============================================
@@ -233,6 +233,7 @@ CREATE TABLE study_programs (
     total_credits INT,
     study_duration NVARCHAR(100),
     description NVARCHAR(MAX),
+    slug NVARCHAR(200) UNIQUE NULL,
     created_at DATETIME2 DEFAULT GETDATE(),
     updated_at DATETIME2 DEFAULT GETDATE()
 );
@@ -648,16 +649,16 @@ GO
 
 -- Insert Study Programs / Akademik
 INSERT INTO study_programs
-(program_name, degree_level, degree_title, total_credits, study_duration, description)
+(program_name, degree_level, degree_title, total_credits, study_duration, description, slug)
 VALUES
-('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi'),
-('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen'),
-('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban'),
-('Magister Teologi Transformasi Budaya Masyarakat','S2','M.Th',56,'2 Tahun','Program magister teologi yang berfokus pada transformasi budaya dan masyarakat'),
-('Magister Pendidikan Agama Kristen','S2','M.Pd',60,'2 Tahun','Program magister untuk pengembangan kepemimpinan dan pendidikan Kristen'),
-('Magister Ministri Marketplace','S2','M.Min',54,'2 Tahun','Program magister ministri dengan fokus pelayanan di dunia kerja dan marketplace'),
-('Magister Ministri Kepemimpinan Pastoral','S2','M.Min',45,'2 Tahun','Program kepemimpinan pastoral bagi pemimpin gereja'),
-('Magister Ministri Teologi Pelayanan Gerejawi','S2','M.Min',65,'2.5 Tahun','Program ministri untuk pengembangan pelayanan gereja secara komprehensif');
+('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi', 'sarjana-teologi'),
+('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen', 'sarjana-pendidikan-kristen'),
+('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban', 'magister-teologi-pastoral-urban'),
+('Magister Teologi Transformasi Budaya Masyarakat','S2','M.Th',56,'2 Tahun','Program magister teologi yang berfokus pada transformasi budaya dan masyarakat', 'magister-teologi-transformasi-budaya'),
+('Magister Pendidikan Agama Kristen','S2','M.Pd',60,'2 Tahun','Program magister untuk pengembangan kepemimpinan dan pendidikan Kristen', 'magister-pendidikan-agama-kristen'),
+('Magister Ministri Marketplace','S2','M.Min',54,'2 Tahun','Program magister ministri dengan fokus pelayanan di dunia kerja dan marketplace', 'magister-ministri-marketplace'),
+('Magister Ministri Kepemimpinan Pastoral','S2','M.Min',45,'2 Tahun','Program kepemimpinan pastoral bagi pemimpin gereja', 'magister-ministri-kepemimpinan-pastoral'),
+('Magister Ministri Teologi Pelayanan Gerejawi','S2','M.Min',65,'2.5 Tahun','Program ministri untuk pengembangan pelayanan gereja secara komprehensif', 'magister-ministri-teologi-pelayanan-gerejawi');
 GO
 Go
 
