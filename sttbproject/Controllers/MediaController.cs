@@ -46,20 +46,23 @@ public class MediaController : ControllerBase
         }
     }
 
+    /// <param name="request">Upload request containing file and user ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Upload result with file URL</returns>
     [HttpPost("upload")]
+    [Consumes("multipart/form-data")]
     [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB
     public async Task<IActionResult> Upload(
-        [FromForm] IFormFile file,
-        [FromForm] int uploadedBy,
+        [FromForm] UploadMediaRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var request = new UploadMediaRequest
+            if (request.File == null || request.File.Length == 0)
             {
-                File = file,
-                UploadedBy = uploadedBy
-            };
+                return BadRequest(new { message = "Please select a file to upload" });
+            }
+
             var result = await _mediator.Send(request, cancellationToken);
             return Ok(result);
         }

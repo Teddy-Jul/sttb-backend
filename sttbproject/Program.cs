@@ -34,15 +34,21 @@ builder.Services.AddSwaggerGen(options =>
             Email = "dev@sttb.ac.id"
         }
     });
+    
+    // Enable file upload in Swagger
+    options.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
 });
 
 // Database
 builder.Services.AddDbContext<SttbprojectContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Application Services (MediatR, Validators, Infrastructure)
-// Validators will run in MediatR pipeline, not ASP.NET pipeline
-builder.Services.AddApplicationServices();
+// Application Services (MediatR, Validators, Infrastructure) - Pass configuration
+builder.Services.AddApplicationServices(builder.Configuration);
 
 // Hosted Services
 builder.Services.AddHostedService<DatabaseMigrationService>();
