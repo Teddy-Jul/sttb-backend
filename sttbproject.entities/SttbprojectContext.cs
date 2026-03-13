@@ -17,6 +17,8 @@ public partial class SttbprojectContext : DbContext
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
+    public virtual DbSet<AcademicCalendar> AcademicCalendars { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<CategoryCourse> CategoryCourses { get; set; }
@@ -26,6 +28,8 @@ public partial class SttbprojectContext : DbContext
     public virtual DbSet<Course> Courses { get; set; }
 
     public virtual DbSet<CourseCategory> CourseCategories { get; set; }
+
+    public virtual DbSet<Event> Events { get; set; }
 
     public virtual DbSet<Medium> Media { get; set; }
 
@@ -653,6 +657,110 @@ public partial class SttbprojectContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
                 .HasConstraintName("FK__users__role_id__6F7F8B4B");
+        });
+
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.HasKey(e => e.EventId).HasName("PK__events__2BFEF9E0");
+
+            entity.ToTable("events");
+
+            entity.HasIndex(e => e.Slug, "UQ__events__32DD1E4C").IsUnique();
+
+            entity.HasIndex(e => e.Slug, "idx_events_slug");
+
+            entity.HasIndex(e => e.Status, "idx_events_status");
+
+            entity.HasIndex(e => e.StartDate, "idx_events_start_date");
+
+            entity.Property(e => e.EventId).HasColumnName("event_id");
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(255)
+                .HasColumnName("slug");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Location)
+                .HasMaxLength(255)
+                .HasColumnName("location");
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.FeaturedImageId).HasColumnName("featured_image_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("draft")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(d => d.FeaturedImage).WithMany()
+                .HasForeignKey(d => d.FeaturedImageId)
+                .HasConstraintName("FK__events__featured_image_id");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany()
+                .HasForeignKey(d => d.CreatedBy)
+                .HasConstraintName("FK__events__created_by");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany()
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK__events__updated_by");
+        });
+
+        modelBuilder.Entity<AcademicCalendar>(entity =>
+        {
+            entity.HasKey(e => e.AcademicCalendarId).HasName("PK__academic_calendars__id");
+
+            entity.ToTable("academic_calendars");
+
+            entity.HasIndex(e => e.Slug, "UQ__academic_calendars__slug").IsUnique();
+
+            entity.HasIndex(e => e.Slug, "idx_academic_calendars_slug");
+            entity.HasIndex(e => e.Status, "idx_academic_calendars_status");
+            entity.HasIndex(e => e.StartDate, "idx_academic_calendars_start_date");
+            entity.HasIndex(e => e.AcademicYear, "idx_academic_calendars_academic_year");
+
+            entity.Property(e => e.AcademicCalendarId).HasColumnName("academic_calendar_id");
+            entity.Property(e => e.Title)
+                .HasMaxLength(255)
+                .HasColumnName("title");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(255)
+                .HasColumnName("slug");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.AcademicYear)
+                .HasMaxLength(20)
+                .HasColumnName("academic_year");
+            entity.Property(e => e.Semester)
+                .HasMaxLength(20)
+                .HasColumnName("semester");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(50)
+                .HasColumnName("event_type");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("published")
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany()
+                .HasForeignKey(d => d.CreatedBy)
+                .HasConstraintName("FK__academic_calendars__created_by");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany()
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("FK__academic_calendars__updated_by");
         });
 
         OnModelCreatingPartial(modelBuilder);

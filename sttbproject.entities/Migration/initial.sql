@@ -42,6 +42,7 @@ IF OBJECT_ID('course_categories', 'U') IS NOT NULL DROP TABLE course_categories;
 IF OBJECT_ID('program_fees', 'U') IS NOT NULL DROP TABLE program_fees;
 IF OBJECT_ID('program_fee_categories', 'U') IS NOT NULL DROP TABLE program_fee_categories;
 IF OBJECT_ID('study_programs', 'U') IS NOT NULL DROP TABLE study_programs;
+IF OBJECT_ID('events', 'U') IS NOT NULL DROP TABLE events;
 GO
 
 -- ============================================
@@ -300,6 +301,47 @@ CREATE TABLE program_fees (
     created_at DATETIME2 DEFAULT GETDATE(),
     updated_at DATETIME2 DEFAULT GETDATE()
 );
+GO
+
+CREATE TABLE events (
+    event_id INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(255) NOT NULL,
+    slug NVARCHAR(255) UNIQUE NULL,
+    description NVARCHAR(MAX) NULL,
+    location NVARCHAR(255) NULL,
+    start_date DATETIME2 NOT NULL,
+    end_date DATETIME2 NULL,
+    featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
+    status NVARCHAR(20) DEFAULT 'draft',   -- draft | published | cancelled
+    created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+    updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 NULL
+);
+GO
+
+CREATE TABLE academic_calendars (
+    academic_calendar_id INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(255) NOT NULL,
+    slug NVARCHAR(255) UNIQUE NULL,
+    description NVARCHAR(MAX) NULL,
+    start_date DATETIME2 NOT NULL,
+    end_date DATETIME2 NULL,
+    academic_year NVARCHAR(20) NULL,   -- e.g. "2025/2026"
+    semester NVARCHAR(20) NULL,        -- "Ganjil" | "Genap"
+    event_type NVARCHAR(50) NULL,      -- "UTS" | "UAS" | "Libur" | "Pendaftaran" | etc.
+    status NVARCHAR(20) DEFAULT 'published',
+    created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+    updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 NULL
+);
+GO
+
+CREATE INDEX idx_academic_calendars_slug ON academic_calendars(slug);
+CREATE INDEX idx_academic_calendars_status ON academic_calendars(status);
+CREATE INDEX idx_academic_calendars_start_date ON academic_calendars(start_date);
+CREATE INDEX idx_academic_calendars_academic_year ON academic_calendars(academic_year);
 GO
 
 -- ============================================
@@ -1429,6 +1471,27 @@ VALUES
 (2,3,'Wisuda',2000000),
 (2,3,'Cuti Akademik',500000);
 
+-- Insert Events
+SET IDENTITY_INSERT events ON;
+INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+(1, 'Penerimaan Mahasiswa Baru 2025', 'penerimaan-mahasiswa-baru-2025',
+ 'Kegiatan penerimaan mahasiswa baru tahun akademik 2025/2026. Seluruh calon mahasiswa wajib hadir.',
+ 'Gedung Aula STTB, Jakarta', '2025-07-14 08:00:00', '2025-07-14 16:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
+(2, 'Seminar Teologi: Peran Gereja di Era Modern', 'seminar-teologi-peran-gereja-era-modern',
+ 'Seminar teologi yang membahas peran dan tantangan gereja di era modern bersama narasumber nasional.',
+ 'Aula Utama STTB', '2025-08-20 09:00:00', '2025-08-20 17:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
+(3, 'Retreat Mahasiswa Semester Ganjil 2025', 'retreat-mahasiswa-semester-ganjil-2025',
+ 'Retreat rohani dan akademik mahasiswa STTB sebagai pembuka tahun akademik baru.',
+ 'Wisma Bethel, Puncak, Jawa Barat', '2025-09-05 07:00:00', '2025-09-07 18:00:00', NULL, 'published', 2, NULL, GETDATE(), NULL),
+(4, 'Wisuda Angkatan XIV', 'wisuda-angkatan-xiv',
+ 'Upacara wisuda angkatan XIV Sekolah Tinggi Teologi Bethel untuk program S1 dan S2.',
+ 'Gedung Serbaguna STTB, Jakarta', '2025-11-29 09:00:00', '2025-11-29 14:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
+(5, 'Workshop Pelayanan Musik Gereja', 'workshop-pelayanan-musik-gereja',
+ 'Workshop intensif sehari untuk meningkatkan kualitas pelayanan musik dalam konteks ibadah gereja.',
+ 'Ruang Serbaguna STTB Lantai 2', '2025-10-11 09:00:00', '2025-10-11 16:00:00', NULL, 'draft', 2, NULL, GETDATE(), NULL);
+SET IDENTITY_INSERT events OFF;
+GO
+
 -- ============================================
 -- CREATE INDEXES FOR PERFORMANCE
 -- ============================================
@@ -1455,6 +1518,9 @@ CREATE INDEX idx_category_courses_program_category ON category_courses(program_c
 CREATE INDEX idx_category_courses_course ON category_courses(course_id);
 CREATE INDEX idx_program_fees_program ON program_fees(program_id);
 CREATE INDEX idx_program_fees_category ON program_fees(fee_category_id);
+CREATE INDEX idx_events_slug ON events(slug);
+CREATE INDEX idx_events_status ON events(status);
+CREATE INDEX idx_events_start_date ON events(start_date);
 
 GO
 
@@ -1495,7 +1561,9 @@ SELECT 'Category Courses', COUNT(*) FROM category_courses
 UNION ALL
 SELECT 'Program Fee Categories', COUNT(*) FROM program_fee_categories
 UNION ALL
-SELECT 'Program Fees', COUNT(*) FROM program_fees;
+SELECT 'Program Fees', COUNT(*) FROM program_fees
+UNION ALL
+SELECT 'Events', COUNT(*) FROM events;
 GO
 
 
