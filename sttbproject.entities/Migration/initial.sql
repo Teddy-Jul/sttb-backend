@@ -15,8 +15,10 @@ GO
 
 -- ============================================
 -- DROP TABLES (for clean re-initialization)
+-- Order: children before parents (FK dependency order)
 -- ============================================
 
+-- Leaf / junction tables first (no other tables depend on them)
 IF OBJECT_ID('search_index', 'U') IS NOT NULL DROP TABLE search_index;
 IF OBJECT_ID('page_views', 'U') IS NOT NULL DROP TABLE page_views;
 IF OBJECT_ID('system_logs', 'U') IS NOT NULL DROP TABLE system_logs;
@@ -25,24 +27,30 @@ IF OBJECT_ID('contact_messages', 'U') IS NOT NULL DROP TABLE contact_messages;
 IF OBJECT_ID('menu_items', 'U') IS NOT NULL DROP TABLE menu_items;
 IF OBJECT_ID('menus', 'U') IS NOT NULL DROP TABLE menus;
 IF OBJECT_ID('post_categories', 'U') IS NOT NULL DROP TABLE post_categories;
-IF OBJECT_ID('categories', 'U') IS NOT NULL DROP TABLE categories;
-IF OBJECT_ID('posts', 'U') IS NOT NULL DROP TABLE posts;
-IF OBJECT_ID('media', 'U') IS NOT NULL DROP TABLE media;
-IF OBJECT_ID('pages', 'U') IS NOT NULL DROP TABLE pages;
 IF OBJECT_ID('role_permissions', 'U') IS NOT NULL DROP TABLE role_permissions;
+IF OBJECT_ID('category_courses', 'U') IS NOT NULL DROP TABLE category_courses;
+IF OBJECT_ID('program_course_categories', 'U') IS NOT NULL DROP TABLE program_course_categories;
+IF OBJECT_ID('program_fees', 'U') IS NOT NULL DROP TABLE program_fees;
+
+-- Tables that reference media / users — must be dropped before media and users
+IF OBJECT_ID('academic_calendars', 'U') IS NOT NULL DROP TABLE academic_calendars;
+IF OBJECT_ID('events', 'U') IS NOT NULL DROP TABLE events;
+IF OBJECT_ID('posts', 'U') IS NOT NULL DROP TABLE posts;
+IF OBJECT_ID('pages', 'U') IS NOT NULL DROP TABLE pages;
+
+-- Tables that reference courses / study_programs / categories
+IF OBJECT_ID('courses', 'U') IS NOT NULL DROP TABLE courses;
+IF OBJECT_ID('course_categories', 'U') IS NOT NULL DROP TABLE course_categories;
+IF OBJECT_ID('program_fee_categories', 'U') IS NOT NULL DROP TABLE program_fee_categories;
+IF OBJECT_ID('study_programs', 'U') IS NOT NULL DROP TABLE study_programs;
+IF OBJECT_ID('categories', 'U') IS NOT NULL DROP TABLE categories;
+
+-- Parent tables (referenced by the ones above)
 IF OBJECT_ID('permissions', 'U') IS NOT NULL DROP TABLE permissions;
+IF OBJECT_ID('media', 'U') IS NOT NULL DROP TABLE media;
 IF OBJECT_ID('users', 'U') IS NOT NULL DROP TABLE users;
 IF OBJECT_ID('roles', 'U') IS NOT NULL DROP TABLE roles;
 IF OBJECT_ID('site_settings', 'U') IS NOT NULL DROP TABLE site_settings;
-
-IF OBJECT_ID('category_courses', 'U') IS NOT NULL DROP TABLE category_courses;
-IF OBJECT_ID('courses', 'U') IS NOT NULL DROP TABLE courses;
-IF OBJECT_ID('program_course_categories', 'U') IS NOT NULL DROP TABLE program_course_categories;
-IF OBJECT_ID('course_categories', 'U') IS NOT NULL DROP TABLE course_categories;
-IF OBJECT_ID('program_fees', 'U') IS NOT NULL DROP TABLE program_fees;
-IF OBJECT_ID('program_fee_categories', 'U') IS NOT NULL DROP TABLE program_fee_categories;
-IF OBJECT_ID('study_programs', 'U') IS NOT NULL DROP TABLE study_programs;
-IF OBJECT_ID('events', 'U') IS NOT NULL DROP TABLE events;
 GO
 
 -- ============================================
@@ -50,298 +58,385 @@ GO
 -- ============================================
 
 -- 1. Roles
-CREATE TABLE roles (
-    role_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(50) UNIQUE NOT NULL,
-    description NVARCHAR(MAX) NULL
-);
+IF OBJECT_ID('roles', 'U') IS NULL
+BEGIN
+    CREATE TABLE roles (
+        role_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(50) UNIQUE NOT NULL,
+        description NVARCHAR(MAX) NULL
+    );
+END
 GO
 
 -- 2. Users
-CREATE TABLE users (
-    user_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NULL,
-    email NVARCHAR(150) UNIQUE NOT NULL,
-    password_hash NVARCHAR(MAX) NOT NULL,
-    role_id INT NULL FOREIGN KEY REFERENCES roles(role_id),
-    status NVARCHAR(20) DEFAULT 'active',
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('users', 'U') IS NULL
+BEGIN
+    CREATE TABLE users (
+        user_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NULL,
+        email NVARCHAR(150) UNIQUE NOT NULL,
+        password_hash NVARCHAR(MAX) NOT NULL,
+        role_id INT NULL FOREIGN KEY REFERENCES roles(role_id),
+        status NVARCHAR(20) DEFAULT 'active',
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 NULL
+    );
+END
 GO
 
 -- 3. Permissions
-CREATE TABLE permissions (
-    permission_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) UNIQUE NOT NULL,
-    description NVARCHAR(MAX) NULL
-);
+IF OBJECT_ID('permissions', 'U') IS NULL
+BEGIN
+    CREATE TABLE permissions (
+        permission_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) UNIQUE NOT NULL,
+        description NVARCHAR(MAX) NULL
+    );
+END
 GO
 
 -- 4. Role Permissions
-CREATE TABLE role_permissions (
-    role_id INT NOT NULL FOREIGN KEY REFERENCES roles(role_id) ON DELETE CASCADE,
-    permission_id INT NOT NULL FOREIGN KEY REFERENCES permissions(permission_id) ON DELETE CASCADE,
-    PRIMARY KEY (role_id, permission_id)
-);
+IF OBJECT_ID('role_permissions', 'U') IS NULL
+BEGIN
+    CREATE TABLE role_permissions (
+        role_id INT NOT NULL FOREIGN KEY REFERENCES roles(role_id) ON DELETE CASCADE,
+        permission_id INT NOT NULL FOREIGN KEY REFERENCES permissions(permission_id) ON DELETE CASCADE,
+        PRIMARY KEY (role_id, permission_id)
+    );
+END
 GO
 
 -- 5. Pages
-CREATE TABLE pages (
-    page_id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(200) NULL,
-    slug NVARCHAR(200) UNIQUE NULL,
-    content NVARCHAR(MAX) NULL,
-    status NVARCHAR(20) DEFAULT 'draft',
-    created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('pages', 'U') IS NULL
+BEGIN
+    CREATE TABLE pages (
+        page_id INT IDENTITY(1,1) PRIMARY KEY,
+        title NVARCHAR(200) NULL,
+        slug NVARCHAR(200) UNIQUE NULL,
+        content NVARCHAR(MAX) NULL,
+        status NVARCHAR(20) DEFAULT 'draft',
+        created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 NULL
+    );
+END
 GO
 
 -- 6. Media
-CREATE TABLE media (
-    media_id INT IDENTITY(1,1) PRIMARY KEY,
-    file_name NVARCHAR(255) NULL,
-    file_path NVARCHAR(MAX) NULL,
-    file_type NVARCHAR(50) NULL,
-    file_size BIGINT NULL,
-    uploaded_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    created_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('media', 'U') IS NULL
+BEGIN
+    CREATE TABLE media (
+        media_id INT IDENTITY(1,1) PRIMARY KEY,
+        file_name NVARCHAR(255) NULL,
+        file_path NVARCHAR(MAX) NULL,
+        file_type NVARCHAR(50) NULL,
+        file_size BIGINT NULL,
+        uploaded_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        created_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 7. Posts (Blog/News)
-CREATE TABLE posts (
-    post_id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NULL,
-    slug NVARCHAR(255) UNIQUE NULL,
-    content NVARCHAR(MAX) NULL,
-    excerpt NVARCHAR(MAX) NULL,
-    featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
-    status NVARCHAR(20) DEFAULT 'draft',
-    author_id INT NULL FOREIGN KEY REFERENCES users(user_id),
-    published_at DATETIME2 NULL,
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('posts', 'U') IS NULL
+BEGIN
+    CREATE TABLE posts (
+        post_id INT IDENTITY(1,1) PRIMARY KEY,
+        title NVARCHAR(255) NULL,
+        slug NVARCHAR(255) UNIQUE NULL,
+        content NVARCHAR(MAX) NULL,
+        excerpt NVARCHAR(MAX) NULL,
+        featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
+        status NVARCHAR(20) DEFAULT 'draft',
+        author_id INT NULL FOREIGN KEY REFERENCES users(user_id),
+        published_at DATETIME2 NULL,
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 NULL
+    );
+END
 GO
 
 -- 8. Categories
-CREATE TABLE categories (
-    category_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NULL,
-    slug NVARCHAR(100) UNIQUE NULL
-);
+IF OBJECT_ID('categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE categories (
+        category_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NULL,
+        slug NVARCHAR(100) UNIQUE NULL
+    );
+END
 GO
 
 -- 9. Post Categories
-CREATE TABLE post_categories (
-    post_id INT NOT NULL FOREIGN KEY REFERENCES posts(post_id) ON DELETE CASCADE,
-    category_id INT NOT NULL FOREIGN KEY REFERENCES categories(category_id) ON DELETE CASCADE,
-    PRIMARY KEY (post_id, category_id)
-);
+IF OBJECT_ID('post_categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE post_categories (
+        post_id INT NOT NULL FOREIGN KEY REFERENCES posts(post_id) ON DELETE CASCADE,
+        category_id INT NOT NULL FOREIGN KEY REFERENCES categories(category_id) ON DELETE CASCADE,
+        PRIMARY KEY (post_id, category_id)
+    );
+END
 GO
 
 -- 10. Menus
-CREATE TABLE menus (
-    menu_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NULL
-);
+IF OBJECT_ID('menus', 'U') IS NULL
+BEGIN
+    CREATE TABLE menus (
+        menu_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NULL
+    );
+END
 GO
 
 -- 11. Menu Items
-CREATE TABLE menu_items (
-    menu_item_id INT IDENTITY(1,1) PRIMARY KEY,
-    menu_id INT NOT NULL FOREIGN KEY REFERENCES menus(menu_id) ON DELETE CASCADE,
-    title NVARCHAR(100) NULL,
-    url NVARCHAR(255) NULL,
-    parent_id INT NULL FOREIGN KEY REFERENCES menu_items(menu_item_id),
-    position INT NULL
-);
+IF OBJECT_ID('menu_items', 'U') IS NULL
+BEGIN
+    CREATE TABLE menu_items (
+        menu_item_id INT IDENTITY(1,1) PRIMARY KEY,
+        menu_id INT NOT NULL FOREIGN KEY REFERENCES menus(menu_id) ON DELETE CASCADE,
+        title NVARCHAR(100) NULL,
+        url NVARCHAR(255) NULL,
+        parent_id INT NULL FOREIGN KEY REFERENCES menu_items(menu_item_id),
+        position INT NULL
+    );
+END
 GO
 
 -- 12. Contact Messages
-CREATE TABLE contact_messages (
-    contact_message_id INT IDENTITY(1,1) PRIMARY KEY,
-    name NVARCHAR(100) NULL,
-    email NVARCHAR(150) NULL,
-    subject NVARCHAR(200) NULL,
-    message_text NVARCHAR(MAX) NULL,
-    status NVARCHAR(20) DEFAULT 'new',
-    created_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('contact_messages', 'U') IS NULL
+BEGIN
+    CREATE TABLE contact_messages (
+        contact_message_id INT IDENTITY(1,1) PRIMARY KEY,
+        name NVARCHAR(100) NULL,
+        email NVARCHAR(150) NULL,
+        subject NVARCHAR(200) NULL,
+        message_text NVARCHAR(MAX) NULL,
+        status NVARCHAR(20) DEFAULT 'new',
+        created_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 13. Audit Logs
-CREATE TABLE audit_logs (
-    audit_log_id INT IDENTITY(1,1) PRIMARY KEY,
-    user_id INT NULL FOREIGN KEY REFERENCES users(user_id),
-    action NVARCHAR(100) NULL,
-    entity_type NVARCHAR(50) NULL,
-    entity_id INT NULL,
-    details NVARCHAR(MAX) NULL,
-    created_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('audit_logs', 'U') IS NULL
+BEGIN
+    CREATE TABLE audit_logs (
+        audit_log_id INT IDENTITY(1,1) PRIMARY KEY,
+        user_id INT NULL FOREIGN KEY REFERENCES users(user_id),
+        action NVARCHAR(100) NULL,
+        entity_type NVARCHAR(50) NULL,
+        entity_id INT NULL,
+        details NVARCHAR(MAX) NULL,
+        created_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 14. System Logs
-CREATE TABLE system_logs (
-    system_log_id INT IDENTITY(1,1) PRIMARY KEY,
-    level NVARCHAR(20) NULL,
-    log_message NVARCHAR(MAX) NULL,
-    context NVARCHAR(MAX) NULL, -- JSON stored as NVARCHAR(MAX)
-    created_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('system_logs', 'U') IS NULL
+BEGIN
+    CREATE TABLE system_logs (
+        system_log_id INT IDENTITY(1,1) PRIMARY KEY,
+        level NVARCHAR(20) NULL,
+        log_message NVARCHAR(MAX) NULL,
+        context NVARCHAR(MAX) NULL, -- JSON stored as NVARCHAR(MAX)
+        created_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 15. Page Views (Analytics)
-CREATE TABLE page_views (
-    page_view_id INT IDENTITY(1,1) PRIMARY KEY,
-    page_id INT NULL FOREIGN KEY REFERENCES pages(page_id),
-    visitor_ip NVARCHAR(50) NULL,
-    user_agent NVARCHAR(MAX) NULL,
-    viewed_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('page_views', 'U') IS NULL
+BEGIN
+    CREATE TABLE page_views (
+        page_view_id INT IDENTITY(1,1) PRIMARY KEY,
+        page_id INT NULL FOREIGN KEY REFERENCES pages(page_id),
+        visitor_ip NVARCHAR(50) NULL,
+        user_agent NVARCHAR(MAX) NULL,
+        viewed_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 16. Site Settings
-CREATE TABLE site_settings (
-    site_setting_id INT IDENTITY(1,1) PRIMARY KEY,
-    setting_key NVARCHAR(100) UNIQUE NOT NULL,
-    setting_value NVARCHAR(MAX) NULL,
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('site_settings', 'U') IS NULL
+BEGIN
+    CREATE TABLE site_settings (
+        site_setting_id INT IDENTITY(1,1) PRIMARY KEY,
+        setting_key NVARCHAR(100) UNIQUE NOT NULL,
+        setting_value NVARCHAR(MAX) NULL,
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
 -- 17. Search Index
-CREATE TABLE search_index (
-    search_index_id INT IDENTITY(1,1) PRIMARY KEY,
-    entity_type NVARCHAR(50) NULL,
-    entity_id INT NULL,
-    title NVARCHAR(MAX) NULL,
-    content NVARCHAR(MAX) NULL,
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('search_index', 'U') IS NULL
+BEGIN
+    CREATE TABLE search_index (
+        search_index_id INT IDENTITY(1,1) PRIMARY KEY,
+        entity_type NVARCHAR(50) NULL,
+        entity_id INT NULL,
+        title NVARCHAR(MAX) NULL,
+        content NVARCHAR(MAX) NULL,
+        updated_at DATETIME2 NULL
+    );
+END
 GO
 
-CREATE TABLE study_programs (
-    program_id INT IDENTITY(1,1) PRIMARY KEY,
-    program_name NVARCHAR(200) NOT NULL,
-    degree_level NVARCHAR(20),
-    degree_title NVARCHAR(50),
-    total_credits INT,
-    study_duration NVARCHAR(100),
-    description NVARCHAR(MAX),
-    slug NVARCHAR(200) UNIQUE NULL,
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('study_programs', 'U') IS NULL
+BEGIN
+    CREATE TABLE study_programs (
+        program_id INT IDENTITY(1,1) PRIMARY KEY,
+        program_name NVARCHAR(200) NOT NULL,
+        degree_level NVARCHAR(20),
+        degree_title NVARCHAR(50),
+        total_credits INT,
+        study_duration NVARCHAR(100),
+        description NVARCHAR(MAX),
+        slug NVARCHAR(200) UNIQUE NULL,
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE course_categories (
-    category_id INT IDENTITY(1,1) PRIMARY KEY,
-    category_name NVARCHAR(200),
-    description NVARCHAR(MAX),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('course_categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE course_categories (
+        category_id INT IDENTITY(1,1) PRIMARY KEY,
+        category_name NVARCHAR(200),
+        description NVARCHAR(MAX),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE program_course_categories (
-    program_category_id INT IDENTITY(1,1) PRIMARY KEY,
-    program_id INT
-        FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
-    category_id INT
-        FOREIGN KEY REFERENCES course_categories(category_id),
-    total_credits INT,
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('program_course_categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE program_course_categories (
+        program_category_id INT IDENTITY(1,1) PRIMARY KEY,
+        program_id INT
+            FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
+        category_id INT
+            FOREIGN KEY REFERENCES course_categories(category_id),
+        total_credits INT,
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE courses (
-    course_id INT IDENTITY(1,1) PRIMARY KEY,
-    course_name NVARCHAR(255),
-    description NVARCHAR(MAX),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
-GO
-CREATE TABLE category_courses (
-    category_course_id INT IDENTITY(1,1) PRIMARY KEY,
-    program_category_id INT
-        FOREIGN KEY REFERENCES program_course_categories(program_category_id)
-        ON DELETE CASCADE,
-    course_id INT
-        FOREIGN KEY REFERENCES courses(course_id),
-    credits INT,
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('courses', 'U') IS NULL
+BEGIN
+    CREATE TABLE courses (
+        course_id INT IDENTITY(1,1) PRIMARY KEY,
+        course_name NVARCHAR(255),
+        description NVARCHAR(MAX),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE program_fee_categories (
-    fee_category_id INT IDENTITY(1,1) PRIMARY KEY,
-    category_name NVARCHAR(100),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('category_courses', 'U') IS NULL
+BEGIN
+    CREATE TABLE category_courses (
+        category_course_id INT IDENTITY(1,1) PRIMARY KEY,
+        program_category_id INT
+            FOREIGN KEY REFERENCES program_course_categories(program_category_id)
+            ON DELETE CASCADE,
+        course_id INT
+            FOREIGN KEY REFERENCES courses(course_id),
+        credits INT,
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE program_fees (
-    fee_id INT IDENTITY(1,1) PRIMARY KEY,
-    program_id INT
-        FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
-    fee_category_id INT
-        FOREIGN KEY REFERENCES program_fee_categories(fee_category_id),
-    fee_name NVARCHAR(200),
-    amount DECIMAL(12,2),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
+IF OBJECT_ID('program_fee_categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE program_fee_categories (
+        fee_category_id INT IDENTITY(1,1) PRIMARY KEY,
+        category_name NVARCHAR(100),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE events (
-    event_id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL,
-    slug NVARCHAR(255) UNIQUE NULL,
-    description NVARCHAR(MAX) NULL,
-    location NVARCHAR(255) NULL,
-    start_date DATETIME2 NOT NULL,
-    end_date DATETIME2 NULL,
-    featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
-    status NVARCHAR(20) DEFAULT 'draft',   -- draft | published | cancelled
-    created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('program_fees', 'U') IS NULL
+BEGIN
+    CREATE TABLE program_fees (
+        fee_id INT IDENTITY(1,1) PRIMARY KEY,
+        program_id INT
+            FOREIGN KEY REFERENCES study_programs(program_id) ON DELETE CASCADE,
+        fee_category_id INT
+            FOREIGN KEY REFERENCES program_fee_categories(fee_category_id),
+        fee_name NVARCHAR(200),
+        amount DECIMAL(12,2),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 DEFAULT GETDATE()
+    );
+END
 GO
 
-CREATE TABLE academic_calendars (
-    academic_calendar_id INT IDENTITY(1,1) PRIMARY KEY,
-    title NVARCHAR(255) NOT NULL,
-    slug NVARCHAR(255) UNIQUE NULL,
-    description NVARCHAR(MAX) NULL,
-    start_date DATETIME2 NOT NULL,
-    end_date DATETIME2 NULL,
-    academic_year NVARCHAR(20) NULL,   -- e.g. "2025/2026"
-    semester NVARCHAR(20) NULL,        -- "Ganjil" | "Genap"
-    event_type NVARCHAR(50) NULL,      -- "UTS" | "UAS" | "Libur" | "Pendaftaran" | etc.
-    status NVARCHAR(20) DEFAULT 'published',
-    created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 NULL
-);
+IF OBJECT_ID('events', 'U') IS NULL
+BEGIN
+    CREATE TABLE events (
+        event_id INT IDENTITY(1,1) PRIMARY KEY,
+        title NVARCHAR(255) NOT NULL,
+        slug NVARCHAR(255) UNIQUE NULL,
+        description NVARCHAR(MAX) NULL,
+        location NVARCHAR(255) NULL,
+        start_date DATETIME2 NOT NULL,
+        end_date DATETIME2 NULL,
+        featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
+        status NVARCHAR(20) DEFAULT 'draft',   -- draft | published | cancelled
+        created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 NULL
+    );
+END
 GO
 
-CREATE INDEX idx_academic_calendars_slug ON academic_calendars(slug);
-CREATE INDEX idx_academic_calendars_status ON academic_calendars(status);
-CREATE INDEX idx_academic_calendars_start_date ON academic_calendars(start_date);
-CREATE INDEX idx_academic_calendars_academic_year ON academic_calendars(academic_year);
+IF OBJECT_ID('academic_calendars', 'U') IS NULL
+BEGIN
+    CREATE TABLE academic_calendars (
+        academic_calendar_id INT IDENTITY(1,1) PRIMARY KEY,
+        title NVARCHAR(255) NOT NULL,
+        slug NVARCHAR(255) UNIQUE NULL,
+        description NVARCHAR(MAX) NULL,
+        start_date DATETIME2 NOT NULL,
+        end_date DATETIME2 NULL,
+        academic_year NVARCHAR(20) NULL,   -- e.g. "2025/2026"
+        semester NVARCHAR(20) NULL,        -- "Ganjil" | "Genap"
+        event_type NVARCHAR(50) NULL,      -- "UTS" | "UAS" | "Libur" | "Pendaftaran" | etc.
+        status NVARCHAR(20) DEFAULT 'published',
+        featured_image_id INT NULL FOREIGN KEY REFERENCES media(media_id),
+        created_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        updated_by INT NULL FOREIGN KEY REFERENCES users(user_id),
+        created_at DATETIME2 DEFAULT GETDATE(),
+        updated_at DATETIME2 NULL
+    );
+END
+GO
+
+-- Add featured_image_id to existing academic_calendars tables (idempotent)
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('academic_calendars') AND name = 'featured_image_id'
+)
+BEGIN
+    ALTER TABLE academic_calendars
+        ADD featured_image_id INT NULL
+            CONSTRAINT FK__academic_calendars__featured_image_id
+            FOREIGN KEY REFERENCES media(media_id);
+END
 GO
 
 -- ============================================
@@ -350,48 +445,73 @@ GO
 
 -- Insert Roles
 SET IDENTITY_INSERT roles ON;
-INSERT INTO roles (role_id, name, description) VALUES
-(1, 'super_admin', 'Full system access with all privileges'),
-(2, 'admin', 'Administrative access to manage content'),
-(3, 'editor', 'Can create, edit, and publish content'),
-(4, 'content_creator', 'Can create and edit own content'),
-(5, 'marketing', 'Manage promotions and events'),
-(6, 'user', 'Regular user with read-only access');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 1)
+    INSERT INTO roles (role_id, name, description) VALUES (1, 'super_admin', 'Full system access with all privileges');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 2)
+    INSERT INTO roles (role_id, name, description) VALUES (2, 'admin', 'Administrative access to manage content');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 3)
+    INSERT INTO roles (role_id, name, description) VALUES (3, 'editor', 'Can create, edit, and publish content');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 4)
+    INSERT INTO roles (role_id, name, description) VALUES (4, 'content_creator', 'Can create and edit own content');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 5)
+    INSERT INTO roles (role_id, name, description) VALUES (5, 'marketing', 'Manage promotions and events');
+IF NOT EXISTS (SELECT 1 FROM roles WHERE role_id = 6)
+    INSERT INTO roles (role_id, name, description) VALUES (6, 'user', 'Regular user with read-only access');
 SET IDENTITY_INSERT roles OFF;
 GO
 
 -- Insert Permissions
 SET IDENTITY_INSERT permissions ON;
-INSERT INTO permissions (permission_id, name, description) VALUES
-(1, 'manage_users', 'Create, update, and delete users'),
-(2, 'manage_roles', 'Manage roles and permissions'),
-(3, 'manage_settings', 'Update system settings'),
-(4, 'view_logs', 'View audit and system logs'),
-(5, 'edit_pages', 'Edit static website pages'),
-(6, 'publish_content', 'Publish articles and posts'),
-(7, 'manage_media', 'Upload and manage media files'),
-(8, 'create_articles', 'Create blog articles'),
-(9, 'edit_articles', 'Edit blog articles'),
-(10, 'delete_articles', 'Delete blog articles'),
-(11, 'manage_events', 'Create and manage events'),
-(12, 'manage_menu', 'Manage navigation menus'),
-(13, 'view_analytics', 'View website analytics'),
-(14, 'programs.view', 'View study programs'),
-(15, 'programs.create', 'Create new study programs'),
-(16, 'programs.edit', 'Edit existing study programs'),
-(17, 'programs.delete', 'Delete study programs'),
-(18, 'programs.manage', 'Full management access to study programs'),
-
--- Insert new permissions for Courses
-(19, 'courses.view', 'View courses'),
-(20, 'courses.create', 'Create new courses'),
-(21, 'courses.edit', 'Edit existing courses'),
-(22, 'courses.delete', 'Delete courses'),
-(23, 'courses.manage', 'Full management access to courses'),
-
--- Insert new permissions for Program Fees
-(24, 'program_fees.view', 'View program fees'),
-(25, 'program_fees.manage', 'Manage program fees');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 1)
+    INSERT INTO permissions (permission_id, name, description) VALUES (1, 'manage_users', 'Create, update, and delete users');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 2)
+    INSERT INTO permissions (permission_id, name, description) VALUES (2, 'manage_roles', 'Manage roles and permissions');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 3)
+    INSERT INTO permissions (permission_id, name, description) VALUES (3, 'manage_settings', 'Update system settings');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 4)
+    INSERT INTO permissions (permission_id, name, description) VALUES (4, 'view_logs', 'View audit and system logs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 5)
+    INSERT INTO permissions (permission_id, name, description) VALUES (5, 'edit_pages', 'Edit static website pages');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 6)
+    INSERT INTO permissions (permission_id, name, description) VALUES (6, 'publish_content', 'Publish articles and posts');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 7)
+    INSERT INTO permissions (permission_id, name, description) VALUES (7, 'manage_media', 'Upload and manage media files');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 8)
+    INSERT INTO permissions (permission_id, name, description) VALUES (8, 'create_articles', 'Create blog articles');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 9)
+    INSERT INTO permissions (permission_id, name, description) VALUES (9, 'edit_articles', 'Edit blog articles');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 10)
+    INSERT INTO permissions (permission_id, name, description) VALUES (10, 'delete_articles', 'Delete blog articles');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 11)
+    INSERT INTO permissions (permission_id, name, description) VALUES (11, 'manage_events', 'Create and manage events');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 12)
+    INSERT INTO permissions (permission_id, name, description) VALUES (12, 'manage_menu', 'Manage navigation menus');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 13)
+    INSERT INTO permissions (permission_id, name, description) VALUES (13, 'view_analytics', 'View website analytics');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 14)
+    INSERT INTO permissions (permission_id, name, description) VALUES (14, 'programs.view', 'View study programs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 15)
+    INSERT INTO permissions (permission_id, name, description) VALUES (15, 'programs.create', 'Create new study programs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 16)
+    INSERT INTO permissions (permission_id, name, description) VALUES (16, 'programs.edit', 'Edit existing study programs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 17)
+    INSERT INTO permissions (permission_id, name, description) VALUES (17, 'programs.delete', 'Delete study programs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 18)
+    INSERT INTO permissions (permission_id, name, description) VALUES (18, 'programs.manage', 'Full management access to study programs');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 19)
+    INSERT INTO permissions (permission_id, name, description) VALUES (19, 'courses.view', 'View courses');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 20)
+    INSERT INTO permissions (permission_id, name, description) VALUES (20, 'courses.create', 'Create new courses');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 21)
+    INSERT INTO permissions (permission_id, name, description) VALUES (21, 'courses.edit', 'Edit existing courses');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 22)
+    INSERT INTO permissions (permission_id, name, description) VALUES (22, 'courses.delete', 'Delete courses');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 23)
+    INSERT INTO permissions (permission_id, name, description) VALUES (23, 'courses.manage', 'Full management access to courses');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 24)
+    INSERT INTO permissions (permission_id, name, description) VALUES (24, 'program_fees.view', 'View program fees');
+IF NOT EXISTS (SELECT 1 FROM permissions WHERE permission_id = 25)
+    INSERT INTO permissions (permission_id, name, description) VALUES (25, 'program_fees.manage', 'Manage program fees');
 SET IDENTITY_INSERT permissions OFF;
 GO
 
@@ -523,131 +643,176 @@ GO
 
 -- Insert Users (Password: 'Password123!' - should be hashed in production)
 SET IDENTITY_INSERT users ON;
-INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES
-(1, 'Super Admin', 'superadmin@sttb.ac.id', '$2a$12$chFt9a6xmn3Tht8OdXeAo.fO79NmzJSrJyIaBl4WDbgEyZ2K997EC', 1, 'active'),
-(2, 'Admin User', 'admin@sttb.ac.id', '$2a$12$HykkVxf2IqHIL9/waeG0UO7gpFG4n6xLavOClhuZjchLzd9ClNmca', 2, 'active'),
-(3, 'Editor John', 'editor@sttb.ac.id', '$2a$12$WJYrN9n3RwAD14Mu/ytaM..bn7rkdNlnJwuQ1S9yntyL55Q6km/8i', 3, 'active'),
-(4, 'Content Creator Jane', 'creator@sttb.ac.id', '$2a$12$.pzXkVWuHiQMPIRaRnKtAeETA2EJiEgKPtpx9gD1L6A/udyNJ42ua', 4, 'active'),
-(5, 'Marketing Mike', 'marketing@sttb.ac.id', '$2a$12$GEucw.VbybLm9591CP7DneY7mHpbTIL284ZOs.R7h8EO9ewjlVhRq', 5, 'active');
+IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = 1)
+    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES (1, 'Super Admin', 'superadmin@sttb.ac.id', '$2a$12$chFt9a6xmn3Tht8OdXeAo.fO79NmzJSrJyIaBl4WDbgEyZ2K997EC', 1, 'active');
+IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = 2)
+    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES (2, 'Admin User', 'admin@sttb.ac.id', '$2a$12$HykkVxf2IqHIL9/waeG0UO7gpFG4n6xLavOClhuZjchLzd9ClNmca', 2, 'active');
+IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = 3)
+    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES (3, 'Editor John', 'editor@sttb.ac.id', '$2a$12$WJYrN9n3RwAD14Mu/ytaM..bn7rkdNlnJwuQ1S9yntyL55Q6km/8i', 3, 'active');
+IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = 4)
+    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES (4, 'Content Creator Jane', 'creator@sttb.ac.id', '$2a$12$.pzXkVWuHiQMPIRaRnKtAeETA2EJiEgKPtpx9gD1L6A/udyNJ42ua', 4, 'active');
+IF NOT EXISTS (SELECT 1 FROM users WHERE user_id = 5)
+    INSERT INTO users (user_id, name, email, password_hash, role_id, status) VALUES (5, 'Marketing Mike', 'marketing@sttb.ac.id', '$2a$12$GEucw.VbybLm9591CP7DneY7mHpbTIL284ZOs.R7h8EO9ewjlVhRq', 5, 'active');
 SET IDENTITY_INSERT users OFF;
 GO
 
 -- Insert Site Settings
-INSERT INTO site_settings (setting_key, setting_value) VALUES
-('site_name', 'Sekolah Tinggi Teologi Bethel'),
-('site_abbreviation', 'STTB'),
-('site_email', 'info@sttb.ac.id'),
-('contact_phone', '021-8765432'),
-('contact_address', 'Jl. Teologia No. 123, Jakarta'),
-('facebook_url', 'https://facebook.com/sttb'),
-('instagram_url', 'https://instagram.com/sttb'),
-('twitter_url', 'https://twitter.com/sttb'),
-('maintenance_mode', 'false'),
-('registration_open', 'true');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'site_name')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('site_name', 'Sekolah Tinggi Teologi Bethel');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'site_abbreviation')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('site_abbreviation', 'STTB');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'site_email')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('site_email', 'info@sttb.ac.id');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'contact_phone')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('contact_phone', '021-8765432');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'contact_address')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('contact_address', 'Jl. Teologia No. 123, Jakarta');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'facebook_url')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('facebook_url', 'https://facebook.com/sttb');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'instagram_url')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('instagram_url', 'https://instagram.com/sttb');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'twitter_url')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('twitter_url', 'https://twitter.com/sttb');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'maintenance_mode')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('maintenance_mode', 'false');
+IF NOT EXISTS (SELECT 1 FROM site_settings WHERE setting_key = 'registration_open')
+    INSERT INTO site_settings (setting_key, setting_value) VALUES ('registration_open', 'true');
 GO
 
 -- Insert Pages
 SET IDENTITY_INSERT pages ON;
-INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES
-(1, 'Home', 'home', '<h1>Welcome to STTB</h1><p>Sekolah Tinggi Teologi Bethel is a premier theological institution.</p>', 'published', 1, GETDATE()),
-(2, 'About Us', 'about', '<h1>About STTB</h1><p>Founded in 1950, STTB has been providing quality theological education.</p>', 'published', 1, GETDATE()),
-(3, 'Academic Programs', 'programs', '<h1>Our Programs</h1><p>We offer Strata 1 and Strata 2 programs in various theological studies.</p>', 'published', 1, GETDATE()),
-(4, 'Admission', 'admission', '<h1>Admission Information</h1><p>Learn how to apply to STTB.</p>', 'published', 1, GETDATE()),
-(5, 'Contact Us', 'contact', '<h1>Contact Information</h1><p>Get in touch with us.</p>', 'published', 1, GETDATE());
+IF NOT EXISTS (SELECT 1 FROM pages WHERE page_id = 1)
+    INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES (1, 'Home', 'home', '<h1>Welcome to STTB</h1><p>Sekolah Tinggi Teologi Bethel is a premier theological institution.</p>', 'published', 1, GETDATE());
+IF NOT EXISTS (SELECT 1 FROM pages WHERE page_id = 2)
+    INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES (2, 'About Us', 'about', '<h1>About STTB</h1><p>Founded in 1950, STTB has been providing quality theological education.</p>', 'published', 1, GETDATE());
+IF NOT EXISTS (SELECT 1 FROM pages WHERE page_id = 3)
+    INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES (3, 'Academic Programs', 'programs', '<h1>Our Programs</h1><p>We offer Strata 1 and Strata 2 programs in various theological studies.</p>', 'published', 1, GETDATE());
+IF NOT EXISTS (SELECT 1 FROM pages WHERE page_id = 4)
+    INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES (4, 'Admission', 'admission', '<h1>Admission Information</h1><p>Learn how to apply to STTB.</p>', 'published', 1, GETDATE());
+IF NOT EXISTS (SELECT 1 FROM pages WHERE page_id = 5)
+    INSERT INTO pages (page_id, title, slug, content, status, created_by, created_at) VALUES (5, 'Contact Us', 'contact', '<h1>Contact Information</h1><p>Get in touch with us.</p>', 'published', 1, GETDATE());
 SET IDENTITY_INSERT pages OFF;
 GO
 
 -- Insert Media [have to input manual via API]
 SET IDENTITY_INSERT media ON;
-INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES
-(6,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1),
-(7,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1),
-
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 6)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (6,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 7)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (7,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1);
 -- Dummy Data VV
-(1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1),
-(2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1),
-(3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2),
-(4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2),
-(5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 1)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 2)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 3)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 4)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 5)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
 SET IDENTITY_INSERT media OFF;
 GO
 
 -- Insert Categories
 SET IDENTITY_INSERT categories ON;
-INSERT INTO categories (category_id, name, slug) VALUES
-(1, 'Campus News', 'campus-news'),
-(2, 'Academic', 'academic'),
-(3, 'Events', 'events'),
-(4, 'Announcements', 'announcements'),
-(5, 'Student Life', 'student-life'),
-(6, 'Research', 'research');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 1)
+    INSERT INTO categories (category_id, name, slug) VALUES (1, 'Campus News', 'campus-news');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 2)
+    INSERT INTO categories (category_id, name, slug) VALUES (2, 'Academic', 'academic');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 3)
+    INSERT INTO categories (category_id, name, slug) VALUES (3, 'Events', 'events');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 4)
+    INSERT INTO categories (category_id, name, slug) VALUES (4, 'Announcements', 'announcements');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 5)
+    INSERT INTO categories (category_id, name, slug) VALUES (5, 'Student Life', 'student-life');
+IF NOT EXISTS (SELECT 1 FROM categories WHERE category_id = 6)
+    INSERT INTO categories (category_id, name, slug) VALUES (6, 'Research', 'research');
 SET IDENTITY_INSERT categories OFF;
 GO
 
 -- Insert Posts
 SET IDENTITY_INSERT posts ON;
-INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-(1, 'Welcome to New Academic Year 2025/2026', 'welcome-academic-year-2025-2026', 
- '<p>We are excited to welcome all students to the new academic year. This year brings new opportunities and challenges.</p><p>Registration begins March 15, 2026.</p>', 
- 'Welcome message for the new academic year starting March 2026', 
- 1, 'published', 3, '2026-03-01 09:00:00', '2026-02-28 10:00:00'),
-
-(2, 'Campus Library Renovation Completed', 'library-renovation-completed',
- '<p>Our state-of-the-art library renovation has been completed, featuring modern study spaces and digital resources.</p>',
- 'The campus library has undergone a major renovation with new facilities',
- 4, 'published', 3, '2026-02-15 14:00:00', '2026-02-14 11:00:00'),
-
-(3, 'Upcoming Theological Symposium 2026', 'theological-symposium-2026',
- '<p>Join us for our annual Theological Symposium on March 25-27, 2026. Distinguished speakers from around the world will participate.</p>',
- 'Annual theological symposium announcement with international speakers',
- 2, 'published', 5, '2026-02-20 10:00:00', '2026-02-19 09:00:00'),
-
-(4, 'Student Research Excellence Awards', 'student-research-awards',
- '<p>Congratulations to our students who received excellence awards for their outstanding research contributions.</p>',
- 'Students honored for their exceptional research work',
- 3, 'published', 3, '2026-03-05 15:00:00', '2026-03-04 12:00:00'),
-
-(5, 'Registration for Strata 2 Program Now Open', 'strata-2-registration-open',
- '<p>Applications for our Strata 2 (Master''s) program are now being accepted. Deadline is April 30, 2026.</p>',
- 'Master''s program registration announcement for 2026 intake',
- 5, 'published', 5, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
+IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 1)
+    INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+    (1, 'Welcome to New Academic Year 2025/2026', 'welcome-academic-year-2025-2026',
+     '<p>We are excited to welcome all students to the new academic year. This year brings new opportunities and challenges.</p><p>Registration begins March 15, 2026.</p>',
+     'Welcome message for the new academic year starting March 2026',
+     1, 'published', 3, '2026-03-01 09:00:00', '2026-02-28 10:00:00');
+IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 2)
+    INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+    (2, 'Campus Library Renovation Completed', 'library-renovation-completed',
+     '<p>Our state-of-the-art library renovation has been completed, featuring modern study spaces and digital resources.</p>',
+     'The campus library has undergone a major renovation with new facilities',
+     4, 'published', 3, '2026-02-15 14:00:00', '2026-02-14 11:00:00');
+IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 3)
+    INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+    (3, 'Upcoming Theological Symposium 2026', 'theological-symposium-2026',
+     '<p>Join us for our annual Theological Symposium on March 25-27, 2026. Distinguished speakers from around the world will participate.</p>',
+     'Annual theological symposium announcement with international speakers',
+     2, 'published', 5, '2026-02-20 10:00:00', '2026-02-19 09:00:00');
+IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 4)
+    INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+    (4, 'Student Research Excellence Awards', 'student-research-awards',
+     '<p>Congratulations to our students who received excellence awards for their outstanding research contributions.</p>',
+     'Students honored for their exceptional research work',
+     3, 'published', 3, '2026-03-05 15:00:00', '2026-03-04 12:00:00');
+IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 5)
+    INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
+    (5, 'Registration for Strata 2 Program Now Open', 'strata-2-registration-open',
+     '<p>Applications for our Strata 2 (Master''s) program are now being accepted. Deadline is April 30, 2026.</p>',
+     'Master''s program registration announcement for 2026 intake',
+     5, 'published', 5, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
 SET IDENTITY_INSERT posts OFF;
 GO
 
 -- Insert Post Categories
-INSERT INTO post_categories (post_id, category_id) VALUES
-(1, 1), (1, 4), -- Campus News, Announcements
-(2, 1), (2, 5), -- Campus News, Student Life
-(3, 3), (3, 2), -- Events, Academic
-(4, 5), (4, 6), -- Student Life, Research
-(5, 4), (5, 2); -- Announcements, Academic
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 1) INSERT INTO post_categories VALUES (1, 1);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 4) INSERT INTO post_categories VALUES (1, 4);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 1) INSERT INTO post_categories VALUES (2, 1);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 5) INSERT INTO post_categories VALUES (2, 5);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 3) INSERT INTO post_categories VALUES (3, 3);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 2) INSERT INTO post_categories VALUES (3, 2);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 5) INSERT INTO post_categories VALUES (4, 5);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 6) INSERT INTO post_categories VALUES (4, 6);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 4) INSERT INTO post_categories VALUES (5, 4);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 2) INSERT INTO post_categories VALUES (5, 2);
 GO
 
 -- Insert Menus
 SET IDENTITY_INSERT menus ON;
-INSERT INTO menus (menu_id, name) VALUES
-(1, 'Main Navigation'),
-(2, 'Footer Menu'),
-(3, 'Quick Links');
+IF NOT EXISTS (SELECT 1 FROM menus WHERE menu_id = 1)
+    INSERT INTO menus (menu_id, name) VALUES (1, 'Main Navigation');
+IF NOT EXISTS (SELECT 1 FROM menus WHERE menu_id = 2)
+    INSERT INTO menus (menu_id, name) VALUES (2, 'Footer Menu');
+IF NOT EXISTS (SELECT 1 FROM menus WHERE menu_id = 3)
+    INSERT INTO menus (menu_id, name) VALUES (3, 'Quick Links');
 SET IDENTITY_INSERT menus OFF;
 GO
 
 -- Insert Menu Items (Main Navigation)
 SET IDENTITY_INSERT menu_items ON;
-INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES
-(1, 1, 'Home', '/', NULL, 1),
-(2, 1, 'About', '/about', NULL, 2),
-(3, 1, 'Programs', '/programs', NULL, 3),
-(4, 1, 'Admission', '/admission', NULL, 4),
-(5, 1, 'News', '/news', NULL, 5),
-(6, 1, 'Contact', '/contact', NULL, 6);
-
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 1)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (1, 1, 'Home', '/', NULL, 1);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 2)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (2, 1, 'About', '/about', NULL, 2);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 3)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (3, 1, 'Programs', '/programs', NULL, 3);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 4)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (4, 1, 'Admission', '/admission', NULL, 4);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 5)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (5, 1, 'News', '/news', NULL, 5);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 6)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (6, 1, 'Contact', '/contact', NULL, 6);
 -- Insert submenu items
-INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES
-(7, 1, 'Strata 1', '/programs/strata-1', 3, 1),
-(8, 1, 'Strata 2', '/programs/strata-2', 3, 2),
-(9, 1, 'Online Registration', '/admission/online', 4, 1),
-(10, 1, 'Manual Registration', '/admission/manual', 4, 2);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 7)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (7, 1, 'Strata 1', '/programs/strata-1', 3, 1);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 8)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (8, 1, 'Strata 2', '/programs/strata-2', 3, 2);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 9)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (9, 1, 'Online Registration', '/admission/online', 4, 1);
+IF NOT EXISTS (SELECT 1 FROM menu_items WHERE menu_item_id = 10)
+    INSERT INTO menu_items (menu_item_id, menu_id, title, url, parent_id, position) VALUES (10, 1, 'Manual Registration', '/admission/manual', 4, 2);
 SET IDENTITY_INSERT menu_items OFF;
 GO
 
@@ -694,134 +859,143 @@ INSERT INTO search_index (entity_type, entity_id, title, content, updated_at) VA
 GO
 
 -- Insert Study Programs / Akademik
-INSERT INTO study_programs
-(program_name, degree_level, degree_title, total_credits, study_duration, description, slug)
-VALUES
-('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi', 'sarjana-teologi'),
-('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen', 'sarjana-pendidikan-kristen'),
-('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban', 'magister-teologi-pastoral-urban'),
-('Magister Teologi Transformasi Budaya Masyarakat','S2','M.Th',56,'2 Tahun','Program magister teologi yang berfokus pada transformasi budaya dan masyarakat', 'magister-teologi-transformasi-budaya'),
-('Magister Pendidikan Agama Kristen','S2','M.Pd',60,'2 Tahun','Program magister untuk pengembangan kepemimpinan dan pendidikan Kristen', 'magister-pendidikan-agama-kristen'),
-('Magister Ministri Marketplace','S2','M.Min',54,'2 Tahun','Program magister ministri dengan fokus pelayanan di dunia kerja dan marketplace', 'magister-ministri-marketplace'),
-('Magister Ministri Kepemimpinan Pastoral','S2','M.Min',45,'2 Tahun','Program kepemimpinan pastoral bagi pemimpin gereja', 'magister-ministri-kepemimpinan-pastoral'),
-('Magister Ministri Teologi Pelayanan Gerejawi','S2','M.Min',65,'2.5 Tahun','Program ministri untuk pengembangan pelayanan gereja secara komprehensif', 'magister-ministri-teologi-pelayanan-gerejawi');
+IF NOT EXISTS (SELECT 1 FROM study_programs WHERE slug = 'sarjana-teologi')
+BEGIN
+    INSERT INTO study_programs
+    (program_name, degree_level, degree_title, total_credits, study_duration, description, slug)
+    VALUES
+    ('Sarjana Teologi', 'S1', 'S.Th', 148, '4 Tahun', 'Program Sarjana Teologi fokus pada pelayanan gereja dan studi teologi', 'sarjana-teologi'),
+    ('Sarjana Pendidikan Kristen', 'S1', 'S.Pd', 145, '4 Tahun', 'Program pendidikan Kristen untuk menghasilkan pendidik Kristen', 'sarjana-pendidikan-kristen'),
+    ('Magister Teologi Pelayanan Pastoral Gereja Urban', 'S2', 'M.Th', 56, '2 Tahun', 'Program Magister Teologi dengan fokus pelayanan pastoral gereja urban', 'magister-teologi-pastoral-urban'),
+    ('Magister Teologi Transformasi Budaya Masyarakat','S2','M.Th',56,'2 Tahun','Program magister teologi yang berfokus pada transformasi budaya dan masyarakat', 'magister-teologi-transformasi-budaya'),
+    ('Magister Pendidikan Agama Kristen','S2','M.Pd',60,'2 Tahun','Program magister untuk pengembangan kepemimpinan dan pendidikan Kristen', 'magister-pendidikan-agama-kristen'),
+    ('Magister Ministri Marketplace','S2','M.Min',54,'2 Tahun','Program magister ministri dengan fokus pelayanan di dunia kerja dan marketplace', 'magister-ministri-marketplace'),
+    ('Magister Ministri Kepemimpinan Pastoral','S2','M.Min',45,'2 Tahun','Program kepemimpinan pastoral bagi pemimpin gereja', 'magister-ministri-kepemimpinan-pastoral'),
+    ('Magister Ministri Teologi Pelayanan Gerejawi','S2','M.Min',65,'2.5 Tahun','Program ministri untuk pengembangan pelayanan gereja secara komprehensif', 'magister-ministri-teologi-pelayanan-gerejawi');
+END
 GO
-Go
 
 -- Insert Category Course
-INSERT INTO course_categories (category_name, description) VALUES
--- S1 Categories
-('Dasar Umum','Mata kuliah dasar umum'),
-('Studi Biblika','Studi Alkitab dan bahasa Alkitab'),
-('Studi Teologi','Doktrin dan teologi sistematika'),
-('Sejarah & Budaya','Sejarah gereja dan fenomenologi agama'),
-('Praktika','Pelayanan dan praktik gereja'),
-('Konsentrasi','Mata kuliah konsentrasi program'),
-('Praktik Lapangan','Praktik pelayanan lapangan'),
+IF NOT EXISTS (SELECT 1 FROM course_categories WHERE category_name = 'Dasar Umum')
+BEGIN
+    INSERT INTO course_categories (category_name, description) VALUES
+    -- S1 Categories
+    ('Dasar Umum','Mata kuliah dasar umum'),
+    ('Studi Biblika','Studi Alkitab dan bahasa Alkitab'),
+    ('Studi Teologi','Doktrin dan teologi sistematika'),
+    ('Sejarah & Budaya','Sejarah gereja dan fenomenologi agama'),
+    ('Praktika','Pelayanan dan praktik gereja'),
+    ('Konsentrasi','Mata kuliah konsentrasi program'),
+    ('Praktik Lapangan','Praktik pelayanan lapangan'),
 
--- S2 Categories
-('Mata Kuliah Fondasi','Mata kuliah dasar yang memberikan landasan teologis, metodologis, dan akademik bagi mahasiswa program S2 sebelum memasuki studi lanjutan.'),
-('Fondasi Biblika','Mata kuliah yang membangun pemahaman mendalam tentang Alkitab, termasuk hermeneutika, latar belakang historis, dan metode penafsiran biblika.'),
-('Fondasi Sistematika - Historika','Mata kuliah yang membahas perkembangan doktrin Kristen secara sistematis dan historis, termasuk pemikiran teologi sepanjang sejarah gereja.'),
-('Mata Kuliah Inti','Mata kuliah inti program S2'),
-('Mata Kuliah Konsentrasi','Konsentrasi S2'),
-('Mata Kuliah Elektif','Mata kuliah pilihan'),
-('Mata Kuliah Penelitian','Mata kuliah yang mempersiapkan mahasiswa dalam metodologi penelitian teologi, penulisan akademik, serta pengembangan proposal penelitian.'),
-('Penelitian & Tugas Akhir','Penelitian program S2'),
-('Tugas Akhir','Karya ilmiah akhir berupa tesis atau penelitian akademik yang menunjukkan kemampuan analisis teologis dan metodologi penelitian mahasiswa.'),
-('Mentoring','Mentoring akademik dan spiritual');
+    -- S2 Categories
+    ('Mata Kuliah Fondasi','Mata kuliah dasar yang memberikan landasan teologis, metodologis, dan akademik bagi mahasiswa program S2 sebelum memasuki studi lanjutan.'),
+    ('Fondasi Biblika','Mata kuliah yang membangun pemahaman mendalam tentang Alkitab, termasuk hermeneutika, latar belakang historis, dan metode penafsiran biblika.'),
+    ('Fondasi Sistematika - Historika','Mata kuliah yang membahas perkembangan doktrin Kristen secara sistematis dan historis, termasuk pemikiran teologi sepanjang sejarah gereja.'),
+    ('Mata Kuliah Inti','Mata kuliah inti program S2'),
+    ('Mata Kuliah Konsentrasi','Konsentrasi S2'),
+    ('Mata Kuliah Elektif','Mata kuliah pilihan'),
+    ('Mata Kuliah Penelitian','Mata kuliah yang mempersiapkan mahasiswa dalam metodologi penelitian teologi, penulisan akademik, serta pengembangan proposal penelitian.'),
+    ('Penelitian & Tugas Akhir','Penelitian program S2'),
+    ('Tugas Akhir','Karya ilmiah akhir berupa tesis atau penelitian akademik yang menunjukkan kemampuan analisis teologis dan metodologi penelitian mahasiswa.'),
+    ('Mentoring','Mentoring akademik dan spiritual');
+END
 GO
 
 -- Insert Program Course Categories
-INSERT INTO program_course_categories
-(program_id, category_id, total_credits)
-VALUES
--- Program_id 1 = Sarjana Teologi
--- Category_id 1 = Dasar Umum
-(1,1,14),
-(1,2,34),
-(1,3,23),
-(1,4,11),
-(1,5,42),
-(1,6,9),
-(1,7,9),
-(1,8,6),
+IF NOT EXISTS (SELECT 1 FROM program_course_categories WHERE program_id = 1 AND category_id = 1)
+BEGIN
+    INSERT INTO program_course_categories
+    (program_id, category_id, total_credits)
+    VALUES
+    -- Program_id 1 = Sarjana Teologi
+    -- Category_id 1 = Dasar Umum
+    (1,1,14),
+    (1,2,34),
+    (1,3,23),
+    (1,4,11),
+    (1,5,42),
+    (1,6,9),
+    (1,7,9),
+    (1,8,6),
 
--- Program_id 2 = Sarjana Pendidikan Kristen
-(2,1,12),
-(2,2,29),
-(2,3,20),
-(2,9,65),
-(2,7,9),
-(2,8,7),
+    -- Program_id 2 = Sarjana Pendidikan Kristen
+    (2,1,12),
+    (2,2,29),
+    (2,3,20),
+    (2,9,65),
+    (2,7,9),
+    (2,8,7),
 
--- Program_id 3 = Magister Teologi Pelayanan Pastoral Gereja Urban
-(3,10,15),
-(3,11,18),
-(3,12,6),
-(3,13,15),
-(3,14,2),
-
-
--- ============================================
--- Magister Teologi Transformasi Budaya Masyarakat
--- ============================================
-
-(4,11,15), -- Mata Kuliah Inti
-(4,12,18), -- Mata Kuliah Konsentrasi
-(4,13,6),  -- Mata Kuliah Elektif
-(4,15,15), -- Penelitian & Tugas Akhir
-(4,17,2),  -- Mentoring
+    -- Program_id 3 = Magister Teologi Pelayanan Pastoral Gereja Urban
+    (3,10,15),
+    (3,11,18),
+    (3,12,6),
+    (3,13,15),
+    (3,14,2),
 
 
--- ============================================
--- Magister Pendidikan Kristen
--- ============================================
+    -- ============================================
+    -- Magister Teologi Transformasi Budaya Masyarakat
+    -- ============================================
 
-(5,8,12),  -- Mata Kuliah Fondasi
-(5,11,16), -- Mata Kuliah Inti
-(5,12,9),  -- Konsentrasi Desain Kurikulum
-(5,12,9),  -- Konsentrasi Kepemimpinan Pendidikan
-(5,13,6),  -- Mata Kuliah Elektif
-(5,14,17), -- Mata Kuliah Penelitian
-
-
--- ============================================
--- Magister Ministri Marketplace
--- ============================================
-
-(6,9,9),   -- Fondasi Biblika
-(6,10,12), -- Fondasi Sistematika - Historika
-(6,11,12), -- Mata Kuliah Inti
-(6,12,6),  -- Mata Kuliah Konsentrasi
-(6,13,6),  -- Mata Kuliah Elektif
-(6,14,9),  -- Mata Kuliah Penelitian
+    (4,11,15), -- Mata Kuliah Inti
+    (4,12,18), -- Mata Kuliah Konsentrasi
+    (4,13,6),  -- Mata Kuliah Elektif
+    (4,15,15), -- Penelitian & Tugas Akhir
+    (4,17,2),  -- Mentoring
 
 
--- ============================================
--- Magister Ministri Kepemimpinan Pastoral
--- ============================================
+    -- ============================================
+    -- Magister Pendidikan Kristen
+    -- ============================================
 
-(7,9,9),   -- Fondasi Biblika
-(7,11,15), -- Mata Kuliah Inti
-(7,12,9),  -- Mata Kuliah Konsentrasi
-(7,13,3),  -- Mata Kuliah Elektif
-(7,16,9),  -- Tugas Akhir
+    (5,8,12),  -- Mata Kuliah Fondasi
+    (5,11,16), -- Mata Kuliah Inti
+    (5,12,9),  -- Konsentrasi Desain Kurikulum
+    (5,12,9),  -- Konsentrasi Kepemimpinan Pendidikan
+    (5,13,6),  -- Mata Kuliah Elektif
+    (5,14,17), -- Mata Kuliah Penelitian
 
 
--- ============================================
--- Magister Ministri Teologi Pelayanan Gerejawi
--- ============================================
-(8,9,9),   -- Fondasi Biblika
-(8,10,12), -- Fondasi Sistematika - Historika
-(8,11,12), -- Mata Kuliah Inti
-(8,12,22), -- Mata Kuliah Konsentrasi
-(8,16,10); -- Tugas Akhir
+    -- ============================================
+    -- Magister Ministri Marketplace
+    -- ============================================
 
+    (6,9,9),   -- Fondasi Biblika
+    (6,10,12), -- Fondasi Sistematika - Historika
+    (6,11,12), -- Mata Kuliah Inti
+    (6,12,6),  -- Mata Kuliah Konsentrasi
+    (6,13,6),  -- Mata Kuliah Elektif
+    (6,14,9),  -- Mata Kuliah Penelitian
+
+
+    -- ============================================
+    -- Magister Ministri Kepemimpinan Pastoral
+    -- ============================================
+
+    (7,9,9),   -- Fondasi Biblika
+    (7,11,15), -- Mata Kuliah Inti
+    (7,12,9),  -- Mata Kuliah Konsentrasi
+    (7,13,3),  -- Mata Kuliah Elektif
+    (7,16,9),  -- Tugas Akhir
+
+
+    -- ============================================
+    -- Magister Ministri Teologi Pelayanan Gerejawi
+    -- ============================================
+    (8,9,9),   -- Fondasi Biblika
+    (8,10,12), -- Fondasi Sistematika - Historika
+    (8,11,12), -- Mata Kuliah Inti
+    (8,12,22), -- Mata Kuliah Konsentrasi
+    (8,16,10); -- Tugas Akhir
+END
 GO
 
 -- Insert Course / Mata Kuliah
-INSERT INTO courses (course_name, description) VALUES
+IF NOT EXISTS (SELECT 1 FROM courses WHERE course_name = 'Pancasila dan Kewarganegaraan')
+BEGIN
+    INSERT INTO courses (course_name, description) VALUES
 ('Pancasila dan Kewarganegaraan','Mata kuliah ini membentuk pemikiran kebangsaan yang didorong iman Kristen dalam bidang kewiraan dan membahas Pancasila sebagai falsafah hidup, asas kehidupan bermasyarakat, berbangsa dan bernegara serta penghayatannya dalam iman Kristen.'),
 ('Bahasa Indonesia','Mata kuliah ini memperlengkapi mahasiswa dengan keterampilan membaca seperti menemukan ide pokok, skimming, scanning, summarizing dan reading comprehension.'),
 ('Bahasa Inggris Teologi','Mata kuliah ini mempelajari tata bahasa Inggris dasar serta penerapannya pada bacaan dan kosa kata teologis melalui empat keterampilan bahasa: mendengar, berbicara, membaca dan menulis.'),
@@ -1035,7 +1209,8 @@ INSERT INTO courses (course_name, description) VALUES
 ('Studi PB Para Rasul dan Surat Paulus','Mata kuliah ini mempelajari Kisah Para Rasul dan surat-surat Paulus secara historis dan teologis.'),
 ('Studi PB Kitab Umum dan Wahyu','Mata kuliah ini mempelajari surat-surat umum dan kitab Wahyu dengan pendekatan teologis dan eksegetis.'),
 ('Teologi dan Praktik Ibadah','Mata kuliah ini mengkaji aspek teologis dan praktis dari ibadah serta pengembangan liturgi gereja.'),
-('Tugas Akhir Praktik Pelayanan','Mata kuliah ini memberikan pengalaman praktik pelayanan sebagai integrasi dari seluruh pembelajaran yang telah ditempuh.');
+    ('Tugas Akhir Praktik Pelayanan','Mata kuliah ini memberikan pengalaman praktik pelayanan sebagai integrasi dari seluruh pembelajaran yang telah ditempuh.');
+END
 GO
 
 
@@ -1043,9 +1218,11 @@ GO
 -- Sarjana Teologi (S.Th)
 -- ============================================
 
-INSERT INTO category_courses
-(program_category_id, course_id, credits)
-VALUES
+IF NOT EXISTS (SELECT 1 FROM category_courses WHERE program_category_id = 1 AND course_id = 1)
+BEGIN
+    INSERT INTO category_courses
+    (program_category_id, course_id, credits)
+    VALUES
 
 -- ============================================
 -- Program Category ID 1
@@ -1165,8 +1342,10 @@ VALUES
 -- Program : Sarjana Teologi
 -- Category : Tugas Akhir
 -- ============================================
-(8,38,3), -- Artikel Jurnal
-(8,39,3); -- Proyek Merancang Program Pembinaan
+    (8,38,3), -- Artikel Jurnal
+    (8,39,3); -- Proyek Merancang Program Pembinaan
+END
+GO
 
 
 -- ============================================
@@ -1175,9 +1354,11 @@ VALUES
 -- program_category_id = 9
 -- ============================================
 
-INSERT INTO category_courses
-(program_category_id, course_id, credits)
-VALUES
+IF NOT EXISTS (SELECT 1 FROM category_courses WHERE program_category_id = 9 AND course_id = 1)
+BEGIN
+    INSERT INTO category_courses
+    (program_category_id, course_id, credits)
+    VALUES
 (9,1,2),  -- Pancasila dan Kewarganegaraan
 (9,2,2),  -- Bahasa Indonesia
 (9,3,3),  -- Bahasa Inggris Teologi
@@ -1241,16 +1422,20 @@ VALUES
 (12,80,3), -- Strategi Pembelajaran
 (12,81,3), -- Media & Teknologi Pembelajaran
 (12,82,3), -- Manajemen Administrasi Pendidikan
-(12,83,2), -- Micro Teaching 1
-(12,84,4); -- Micro Teaching 2
+    (12,83,2), -- Micro Teaching 1
+    (12,84,4); -- Micro Teaching 2
+END
+GO
 
 -- ============================================
 -- Magister Teologi Pelayanan Pastoral Gereja Urban
 -- ============================================
 
-INSERT INTO category_courses
-(program_category_id, course_id, credits)
-VALUES
+IF NOT EXISTS (SELECT 1 FROM category_courses WHERE program_category_id = 15 AND course_id = 85)
+BEGIN
+    INSERT INTO category_courses
+    (program_category_id, course_id, credits)
+    VALUES
 
 -- Category 15 : Mata Kuliah Inti
 (15,85,3), -- Pandangan Reformed Gereja
@@ -1445,50 +1630,70 @@ VALUES
 (45,167,3), -- Tugas Akhir Praktik Pelayanan
 
 -- Category 46 : Penelitian / Tugas Akhir
-(46,102,1), -- Mentoring Akademik
-(46,98,3),  -- Penulisan Akademik
-(46,167,6); -- Tugas Akhir Praktik Pelayanan
+    (46,102,1), -- Mentoring Akademik
+    (46,98,3),  -- Penulisan Akademik
+    (46,167,6); -- Tugas Akhir Praktik Pelayanan
+END
+GO
 
 
-INSERT INTO program_fee_categories (category_name) VALUES
-('Administrasi'),
-('Kuliah'),
-('Lain-lain');
-INSERT INTO program_fees
-(program_id, fee_category_id, fee_name, amount)
-VALUES
-(1,1,'Pendaftaran & Tes Masuk',500000),
-(1,1,'Administrasi Per Semester',500000),
-(1,2,'Biaya Kuliah Per Semester',9000000),
-(1,2,'Bimbingan Tugas Akhir',1500000),
-(1,3,'Wisuda',2000000),
-(1,3,'Cuti Akademik',500000),
+IF NOT EXISTS (SELECT 1 FROM program_fee_categories WHERE category_name = 'Administrasi')
+BEGIN
+    INSERT INTO program_fee_categories (category_name) VALUES
+    ('Administrasi'),
+    ('Kuliah'),
+    ('Lain-lain');
+END
+GO
 
-(2,1,'Pendaftaran & Tes Masuk',500000),
-(2,1,'Administrasi Per Semester',500000),
-(2,2,'Biaya Kuliah Per Semester',9000000),
-(2,2,'Bimbingan Tugas Akhir',1500000),
-(2,3,'Wisuda',2000000),
-(2,3,'Cuti Akademik',500000);
+IF NOT EXISTS (SELECT 1 FROM program_fees WHERE program_id = 1 AND fee_name = 'Pendaftaran & Tes Masuk')
+BEGIN
+    INSERT INTO program_fees
+    (program_id, fee_category_id, fee_name, amount)
+    VALUES
+    (1,1,'Pendaftaran & Tes Masuk',500000),
+    (1,1,'Administrasi Per Semester',500000),
+    (1,2,'Biaya Kuliah Per Semester',9000000),
+    (1,2,'Bimbingan Tugas Akhir',1500000),
+    (1,3,'Wisuda',2000000),
+    (1,3,'Cuti Akademik',500000),
+
+    (2,1,'Pendaftaran & Tes Masuk',500000),
+    (2,1,'Administrasi Per Semester',500000),
+    (2,2,'Biaya Kuliah Per Semester',9000000),
+    (2,2,'Bimbingan Tugas Akhir',1500000),
+    (2,3,'Wisuda',2000000),
+    (2,3,'Cuti Akademik',500000);
+END
+GO
 
 -- Insert Events
 SET IDENTITY_INSERT events ON;
-INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-(1, 'Penerimaan Mahasiswa Baru 2025', 'penerimaan-mahasiswa-baru-2025',
- 'Kegiatan penerimaan mahasiswa baru tahun akademik 2025/2026. Seluruh calon mahasiswa wajib hadir.',
- 'Gedung Aula STTB, Jakarta', '2025-07-14 08:00:00', '2025-07-14 16:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
-(2, 'Seminar Teologi: Peran Gereja di Era Modern', 'seminar-teologi-peran-gereja-era-modern',
- 'Seminar teologi yang membahas peran dan tantangan gereja di era modern bersama narasumber nasional.',
- 'Aula Utama STTB', '2025-08-20 09:00:00', '2025-08-20 17:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
-(3, 'Retreat Mahasiswa Semester Ganjil 2025', 'retreat-mahasiswa-semester-ganjil-2025',
- 'Retreat rohani dan akademik mahasiswa STTB sebagai pembuka tahun akademik baru.',
- 'Wisma Bethel, Puncak, Jawa Barat', '2025-09-05 07:00:00', '2025-09-07 18:00:00', NULL, 'published', 2, NULL, GETDATE(), NULL),
-(4, 'Wisuda Angkatan XIV', 'wisuda-angkatan-xiv',
- 'Upacara wisuda angkatan XIV Sekolah Tinggi Teologi Bethel untuk program S1 dan S2.',
- 'Gedung Serbaguna STTB, Jakarta', '2025-11-29 09:00:00', '2025-11-29 14:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL),
-(5, 'Workshop Pelayanan Musik Gereja', 'workshop-pelayanan-musik-gereja',
- 'Workshop intensif sehari untuk meningkatkan kualitas pelayanan musik dalam konteks ibadah gereja.',
- 'Ruang Serbaguna STTB Lantai 2', '2025-10-11 09:00:00', '2025-10-11 16:00:00', NULL, 'draft', 2, NULL, GETDATE(), NULL);
+IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 1)
+    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+    (1, 'Penerimaan Mahasiswa Baru 2025', 'penerimaan-mahasiswa-baru-2025',
+     'Kegiatan penerimaan mahasiswa baru tahun akademik 2025/2026. Seluruh calon mahasiswa wajib hadir.',
+     'Gedung Aula STTB, Jakarta', '2025-07-14 08:00:00', '2025-07-14 16:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
+IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 2)
+    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+    (2, 'Seminar Teologi: Peran Gereja di Era Modern', 'seminar-teologi-peran-gereja-era-modern',
+     'Seminar teologi yang membahas peran dan tantangan gereja di era modern bersama narasumber nasional.',
+     'Aula Utama STTB', '2025-08-20 09:00:00', '2025-08-20 17:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
+IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 3)
+    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+    (3, 'Retreat Mahasiswa Semester Ganjil 2025', 'retreat-mahasiswa-semester-ganjil-2025',
+     'Retreat rohani dan akademik mahasiswa STTB sebagai pembuka tahun akademik baru.',
+     'Wisma Bethel, Puncak, Jawa Barat', '2025-09-05 07:00:00', '2025-09-07 18:00:00', NULL, 'published', 2, NULL, GETDATE(), NULL);
+IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 4)
+    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+    (4, 'Wisuda Angkatan XIV', 'wisuda-angkatan-xiv',
+     'Upacara wisuda angkatan XIV Sekolah Tinggi Teologi Bethel untuk program S1 dan S2.',
+     'Gedung Serbaguna STTB, Jakarta', '2025-11-29 09:00:00', '2025-11-29 14:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
+IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 5)
+    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
+    (5, 'Workshop Pelayanan Musik Gereja', 'workshop-pelayanan-musik-gereja',
+     'Workshop intensif sehari untuk meningkatkan kualitas pelayanan musik dalam konteks ibadah gereja.',
+     'Ruang Serbaguna STTB Lantai 2', '2025-10-11 09:00:00', '2025-10-11 16:00:00', NULL, 'draft', 2, NULL, GETDATE(), NULL);
 SET IDENTITY_INSERT events OFF;
 GO
 
@@ -1496,32 +1701,64 @@ GO
 -- CREATE INDEXES FOR PERFORMANCE
 -- ============================================
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role_id ON users(role_id);
-CREATE INDEX idx_pages_slug ON pages(slug);
-CREATE INDEX idx_pages_status ON pages(status);
-CREATE INDEX idx_posts_slug ON posts(slug);
-CREATE INDEX idx_posts_status ON posts(status);
-CREATE INDEX idx_posts_author_id ON posts(author_id);
-CREATE INDEX idx_posts_published_at ON posts(published_at);
-CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_page_views_page_id ON page_views(page_id);
-CREATE INDEX idx_search_index_entity ON search_index(entity_type, entity_id);
-CREATE INDEX idx_contact_messages_status ON contact_messages(status);
-CREATE INDEX idx_study_programs_degree_level ON study_programs(degree_level);
-CREATE INDEX idx_course_categories_name ON course_categories(category_name);
-CREATE INDEX idx_program_course_categories_program ON program_course_categories(program_id);
-CREATE INDEX idx_program_course_categories_category ON program_course_categories(category_id);
-CREATE INDEX idx_courses_name ON courses(course_name);
-CREATE INDEX idx_category_courses_program_category ON category_courses(program_category_id);
-CREATE INDEX idx_category_courses_course ON category_courses(course_id);
-CREATE INDEX idx_program_fees_program ON program_fees(program_id);
-CREATE INDEX idx_program_fees_category ON program_fees(fee_category_id);
-CREATE INDEX idx_events_slug ON events(slug);
-CREATE INDEX idx_events_status ON events(status);
-CREATE INDEX idx_events_start_date ON events(start_date);
-
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_users_email' AND object_id = OBJECT_ID('users'))
+    CREATE INDEX idx_users_email ON users(email);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_users_role_id' AND object_id = OBJECT_ID('users'))
+    CREATE INDEX idx_users_role_id ON users(role_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_pages_slug' AND object_id = OBJECT_ID('pages'))
+    CREATE INDEX idx_pages_slug ON pages(slug);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_pages_status' AND object_id = OBJECT_ID('pages'))
+    CREATE INDEX idx_pages_status ON pages(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_posts_slug' AND object_id = OBJECT_ID('posts'))
+    CREATE INDEX idx_posts_slug ON posts(slug);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_posts_status' AND object_id = OBJECT_ID('posts'))
+    CREATE INDEX idx_posts_status ON posts(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_posts_author_id' AND object_id = OBJECT_ID('posts'))
+    CREATE INDEX idx_posts_author_id ON posts(author_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_posts_published_at' AND object_id = OBJECT_ID('posts'))
+    CREATE INDEX idx_posts_published_at ON posts(published_at);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_audit_logs_user_id' AND object_id = OBJECT_ID('audit_logs'))
+    CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_audit_logs_entity' AND object_id = OBJECT_ID('audit_logs'))
+    CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_page_views_page_id' AND object_id = OBJECT_ID('page_views'))
+    CREATE INDEX idx_page_views_page_id ON page_views(page_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_search_index_entity' AND object_id = OBJECT_ID('search_index'))
+    CREATE INDEX idx_search_index_entity ON search_index(entity_type, entity_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_contact_messages_status' AND object_id = OBJECT_ID('contact_messages'))
+    CREATE INDEX idx_contact_messages_status ON contact_messages(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_study_programs_degree_level' AND object_id = OBJECT_ID('study_programs'))
+    CREATE INDEX idx_study_programs_degree_level ON study_programs(degree_level);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_course_categories_name' AND object_id = OBJECT_ID('course_categories'))
+    CREATE INDEX idx_course_categories_name ON course_categories(category_name);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_program_course_categories_program' AND object_id = OBJECT_ID('program_course_categories'))
+    CREATE INDEX idx_program_course_categories_program ON program_course_categories(program_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_program_course_categories_category' AND object_id = OBJECT_ID('program_course_categories'))
+    CREATE INDEX idx_program_course_categories_category ON program_course_categories(category_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_courses_name' AND object_id = OBJECT_ID('courses'))
+    CREATE INDEX idx_courses_name ON courses(course_name);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_category_courses_program_category' AND object_id = OBJECT_ID('category_courses'))
+    CREATE INDEX idx_category_courses_program_category ON category_courses(program_category_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_category_courses_course' AND object_id = OBJECT_ID('category_courses'))
+    CREATE INDEX idx_category_courses_course ON category_courses(course_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_program_fees_program' AND object_id = OBJECT_ID('program_fees'))
+    CREATE INDEX idx_program_fees_program ON program_fees(program_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_program_fees_category' AND object_id = OBJECT_ID('program_fees'))
+    CREATE INDEX idx_program_fees_category ON program_fees(fee_category_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_events_slug' AND object_id = OBJECT_ID('events'))
+    CREATE INDEX idx_events_slug ON events(slug);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_events_status' AND object_id = OBJECT_ID('events'))
+    CREATE INDEX idx_events_status ON events(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_events_start_date' AND object_id = OBJECT_ID('events'))
+    CREATE INDEX idx_events_start_date ON events(start_date);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_academic_calendars_slug' AND object_id = OBJECT_ID('academic_calendars'))
+    CREATE INDEX idx_academic_calendars_slug ON academic_calendars(slug);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_academic_calendars_status' AND object_id = OBJECT_ID('academic_calendars'))
+    CREATE INDEX idx_academic_calendars_status ON academic_calendars(status);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_academic_calendars_start_date' AND object_id = OBJECT_ID('academic_calendars'))
+    CREATE INDEX idx_academic_calendars_start_date ON academic_calendars(start_date);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_academic_calendars_academic_year' AND object_id = OBJECT_ID('academic_calendars'))
+    CREATE INDEX idx_academic_calendars_academic_year ON academic_calendars(academic_year);
 GO
 
 -- ============================================
@@ -1566,26 +1803,27 @@ UNION ALL
 SELECT 'Events', COUNT(*) FROM events;
 GO
 
+-- ============================================
+-- SELECT * FOR ALL TABLES
+-- ============================================
 
-
-select * from audit_logs
-select * from categories
-select * from contact_messages
-select * from media
-select * from menu_items
-select * from menus
-select * from page_views
-select * from pages
-select * from permissions
-select * from post_categories
-select * from posts
-select * from role_permissions
-select * from roles
-select * from search_index
-select * from site_settings
-select * from system_logs
-select * from users
-
+SELECT * FROM roles;
+SELECT * FROM users;
+SELECT * FROM permissions;
+SELECT * FROM role_permissions;
+SELECT * FROM pages;
+SELECT * FROM media;
+SELECT * FROM posts;
+SELECT * FROM categories;
+SELECT * FROM post_categories;
+SELECT * FROM menus;
+SELECT * FROM menu_items;
+SELECT * FROM contact_messages;
+SELECT * FROM audit_logs;
+SELECT * FROM system_logs;
+SELECT * FROM page_views;
+SELECT * FROM site_settings;
+SELECT * FROM search_index;
 SELECT * FROM study_programs;
 SELECT * FROM course_categories;
 SELECT * FROM program_course_categories;
@@ -1593,6 +1831,8 @@ SELECT * FROM courses;
 SELECT * FROM category_courses;
 SELECT * FROM program_fee_categories;
 SELECT * FROM program_fees;
+SELECT * FROM events;
+SELECT * FROM academic_calendars;
 GO
 
 

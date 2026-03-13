@@ -747,12 +747,17 @@ public partial class SttbprojectContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("published")
                 .HasColumnName("status");
+            entity.Property(e => e.FeaturedImageId).HasColumnName("featured_image_id");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(d => d.FeaturedImage).WithMany()
+                .HasForeignKey(d => d.FeaturedImageId)
+                .HasConstraintName("FK__academic_calendars__featured_image_id");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany()
                 .HasForeignKey(d => d.CreatedBy)

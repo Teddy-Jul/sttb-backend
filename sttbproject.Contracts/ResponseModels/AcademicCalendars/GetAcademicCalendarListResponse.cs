@@ -19,5 +19,7 @@ public class AcademicCalendarListItem
     public string? Semester { get; set; }
     public string? EventType { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int? FeaturedImageId { get; set; }
+    public string? FeaturedImageUrl { get; set; }
     public DateTime? CreatedAt { get; set; }
 }

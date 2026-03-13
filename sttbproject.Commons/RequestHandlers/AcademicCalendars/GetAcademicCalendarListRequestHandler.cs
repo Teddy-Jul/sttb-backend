@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.AcademicCalendars;
 using sttbproject.Contracts.ResponseModels.AcademicCalendars;
 using sttbproject.entities;
@@ -10,13 +11,16 @@ namespace sttbproject.Commons.RequestHandlers.AcademicCalendars;
 public class GetAcademicCalendarListRequestHandler : IRequestHandler<GetAcademicCalendarListRequest, GetAcademicCalendarListResponse>
 {
     private readonly SttbprojectContext _context;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<GetAcademicCalendarListRequestHandler> _logger;
 
     public GetAcademicCalendarListRequestHandler(
         SttbprojectContext context,
+        IFileStorageService fileStorageService,
         ILogger<GetAcademicCalendarListRequestHandler> logger)
     {
         _context = context;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -42,26 +46,32 @@ public class GetAcademicCalendarListRequestHandler : IRequestHandler<GetAcademic
             .OrderBy(a => a.StartDate)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(a => new AcademicCalendarListItem
-            {
-                AcademicCalendarId = a.AcademicCalendarId,
-                Title = a.Title ?? string.Empty,
-                Slug = a.Slug ?? string.Empty,
-                StartDate = a.StartDate,
-                EndDate = a.EndDate,
-                AcademicYear = a.AcademicYear,
-                Semester = a.Semester,
-                EventType = a.EventType,
-                Status = a.Status ?? string.Empty,
-                CreatedAt = a.CreatedAt
-            })
+            .Include(a => a.FeaturedImage)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Retrieved {Count} academic calendar entries (Page {Page})", items.Count, request.PageNumber);
+        var mapped = items.Select(a => new AcademicCalendarListItem
+        {
+            AcademicCalendarId = a.AcademicCalendarId,
+            Title = a.Title ?? string.Empty,
+            Slug = a.Slug ?? string.Empty,
+            StartDate = a.StartDate,
+            EndDate = a.EndDate,
+            AcademicYear = a.AcademicYear,
+            Semester = a.Semester,
+            EventType = a.EventType,
+            Status = a.Status ?? string.Empty,
+            FeaturedImageId = a.FeaturedImageId,
+            FeaturedImageUrl = a.FeaturedImage != null
+                ? _fileStorageService.GetFileUrl(a.FeaturedImage.FilePath ?? string.Empty)
+                : null,
+            CreatedAt = a.CreatedAt
+        }).ToList();
+
+        _logger.LogInformation("Retrieved {Count} academic calendar entries (Page {Page})", mapped.Count, request.PageNumber);
 
         return new GetAcademicCalendarListResponse
         {
-            AcademicCalendars = items,
+            AcademicCalendars = mapped,
             TotalCount = totalCount,
             PageNumber = request.PageNumber,
             PageSize = request.PageSize

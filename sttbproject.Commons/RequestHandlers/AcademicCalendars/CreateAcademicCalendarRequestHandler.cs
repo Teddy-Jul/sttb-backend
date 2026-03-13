@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.AcademicCalendars;
 using sttbproject.Contracts.ResponseModels.AcademicCalendars;
 using sttbproject.entities;
@@ -10,11 +11,16 @@ namespace sttbproject.Commons.RequestHandlers.AcademicCalendars;
 public class CreateAcademicCalendarRequestHandler : IRequestHandler<CreateAcademicCalendarRequest, AcademicCalendarDetailResponse>
 {
     private readonly SttbprojectContext _context;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<CreateAcademicCalendarRequestHandler> _logger;
 
-    public CreateAcademicCalendarRequestHandler(SttbprojectContext context, ILogger<CreateAcademicCalendarRequestHandler> logger)
+    public CreateAcademicCalendarRequestHandler(
+        SttbprojectContext context,
+        IFileStorageService fileStorageService,
+        ILogger<CreateAcademicCalendarRequestHandler> logger)
     {
         _context = context;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -38,6 +44,7 @@ public class CreateAcademicCalendarRequestHandler : IRequestHandler<CreateAcadem
             Semester = request.Semester,
             EventType = request.EventType,
             Status = request.Status,
+            FeaturedImageId = request.FeaturedImageId,
             CreatedBy = request.CreatedBy,
             CreatedAt = DateTime.UtcNow
         };
@@ -47,6 +54,9 @@ public class CreateAcademicCalendarRequestHandler : IRequestHandler<CreateAcadem
 
         _logger.LogInformation("Academic calendar entry created with ID: {Id}", item.AcademicCalendarId);
 
-        return GetAcademicCalendarByIdRequestHandler.MapToDetailResponse(item);
+        // Reload with FeaturedImage for URL mapping
+        await _context.Entry(item).Reference(a => a.FeaturedImage).LoadAsync(cancellationToken);
+
+        return GetAcademicCalendarByIdRequestHandler.MapToDetailResponse(item, _fileStorageService);
     }
 }

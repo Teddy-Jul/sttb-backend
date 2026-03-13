@@ -15,5 +15,6 @@ public class UpdateAcademicCalendarRequest : IRequest<AcademicCalendarDetailResp
     public string? Semester { get; set; }
     public string? EventType { get; set; }
     public string Status { get; set; } = "published";
+    public int? FeaturedImageId { get; set; }
     public int? UpdatedBy { get; set; }
 }

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.AcademicCalendars;
 using sttbproject.Contracts.ResponseModels.AcademicCalendars;
 using sttbproject.entities;
@@ -10,11 +11,16 @@ namespace sttbproject.Commons.RequestHandlers.AcademicCalendars;
 public class UpdateAcademicCalendarRequestHandler : IRequestHandler<UpdateAcademicCalendarRequest, AcademicCalendarDetailResponse>
 {
     private readonly SttbprojectContext _context;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<UpdateAcademicCalendarRequestHandler> _logger;
 
-    public UpdateAcademicCalendarRequestHandler(SttbprojectContext context, ILogger<UpdateAcademicCalendarRequestHandler> logger)
+    public UpdateAcademicCalendarRequestHandler(
+        SttbprojectContext context,
+        IFileStorageService fileStorageService,
+        ILogger<UpdateAcademicCalendarRequestHandler> logger)
     {
         _context = context;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -45,6 +51,7 @@ public class UpdateAcademicCalendarRequestHandler : IRequestHandler<UpdateAcadem
         item.Semester = request.Semester;
         item.EventType = request.EventType;
         item.Status = request.Status;
+        item.FeaturedImageId = request.FeaturedImageId;
         item.UpdatedBy = request.UpdatedBy;
         item.UpdatedAt = DateTime.UtcNow;
 
@@ -52,6 +59,9 @@ public class UpdateAcademicCalendarRequestHandler : IRequestHandler<UpdateAcadem
 
         _logger.LogInformation("Academic calendar entry updated: {Id}", request.AcademicCalendarId);
 
-        return GetAcademicCalendarByIdRequestHandler.MapToDetailResponse(item);
+        // Reload with FeaturedImage for URL mapping
+        await _context.Entry(item).Reference(a => a.FeaturedImage).LoadAsync(cancellationToken);
+
+        return GetAcademicCalendarByIdRequestHandler.MapToDetailResponse(item, _fileStorageService);
     }
 }
