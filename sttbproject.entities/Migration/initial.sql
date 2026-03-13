@@ -696,21 +696,21 @@ GO
 
 -- Insert Media [have to input manual via API]
 SET IDENTITY_INSERT media ON;
-IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 6)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (6,'download1.jpg','media/2026/03/e2dd4b5c-3db8-43d5-802e-6728e28e7592.jpeg','image/jpeg',6290,1);
-IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 7)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (7,'download2.jpeg','media/2026/03/c464d3e9-a167-4339-a58f-ab6cb9ea1669.jpeg','image/jpeg',5183,1);
--- Dummy Data VV
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 1)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (1, 'logo.png', '/uploads/images/logo.png', 'image/png', 45678, 1);
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (1, 'Berita(KUNJUNGAN ECLASS INTERNATIONAL).png', 'media/2026/03/bcfd869c-d29a-4295-a310-e37c8fd05d38.png', 'image/png', 1149726, 2);
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 2)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (2, 'hero-banner.jpg', '/uploads/images/hero-banner.jpg', 'image/jpeg', 234567, 1);
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (2, 'Berita(MALAM BUDAYA).png).png', 'media/2026/03/3aea048a-5ba3-456e-9aa5-e61703fc321e.png', 'image/png', 1565395, 2);
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 3)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (3, 'campus-building.jpg', '/uploads/images/campus-building.jpg', 'image/jpeg', 345678, 2);
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (3, 'Berita(KUNJUNGAN YAYASAN SEKOLAH KRISTEN ELYON).png', 'media/2026/03/6da65aa2-9664-4cc7-878f-5f88b72faa88.png', 'image/png', 616628, 2);
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 4)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (4, 'students-library.jpg', '/uploads/images/students-library.jpg', 'image/jpeg', 298765, 2);
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (4, 'Berita(HARI ULANG TAHUN KOTA BANDUNG).png', 'media/2026/03/06d930c1-eefc-44d6-835c-56daf87eefd1.png', 'image/png', 884456, 2);
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 5)
-    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES (5, 'graduation-2025.jpg', '/uploads/images/graduation-2025.jpg', 'image/jpeg', 456789, 3);
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (5, 'Berita(WISUDA DAN DIES NATALIS KE XXXIII STTB 2025).png', 'media/2026/03/90f25ddd-a5b2-459d-95a3-9e58600183ed.png', 'image/png', 529048, 2);
 SET IDENTITY_INSERT media OFF;
 GO
 
@@ -735,48 +735,53 @@ GO
 SET IDENTITY_INSERT posts ON;
 IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 1)
     INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-    (1, 'Welcome to New Academic Year 2025/2026', 'welcome-academic-year-2025-2026',
-     '<p>We are excited to welcome all students to the new academic year. This year brings new opportunities and challenges.</p><p>Registration begins March 15, 2026.</p>',
-     'Welcome message for the new academic year starting March 2026',
-     1, 'published', 3, '2026-03-01 09:00:00', '2026-02-28 10:00:00');
+    (1, 'KUNJUNGAN ECLASS INTERNATIONAL','kunjungan-eclass-international',
+    'STT Bandung dipercaya mendapatkan Grand dari Templeton untuk mengerjakan project ECLAS (Equipping Christian Leadership in an Age of Science). Pada hari Jumat, 24 Oktober 2025, STT Bandung menyambut kunjungan David Willkinson & Lucas Mix yang merupakan pimpinan dari ECLAS di Eropa yang akan menghadiri rapat di Singapore, untuk membahas mengenai kerja sama yang sudah terjalin dengan STT Bandung dalam berbagai bidang seperti kurikulum, penelitian, dan proyek lainnya.'
+    ,'STT Bandung dipercaya mendapatkan Grand dari Templateon untuk mengerjakan project ECLAS (Equipping Christian Leadership in an Age of Science)',1,'Published', 2, '2026-03-01 09:00:00', '2026-02-28 10:00:00');
 IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 2)
     INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-    (2, 'Campus Library Renovation Completed', 'library-renovation-completed',
-     '<p>Our state-of-the-art library renovation has been completed, featuring modern study spaces and digital resources.</p>',
-     'The campus library has undergone a major renovation with new facilities',
-     4, 'published', 3, '2026-02-15 14:00:00', '2026-02-14 11:00:00');
+    (2, 'MALAM BUDAYA','malam-budaya',
+    'Malam Budaya yang diselenggarakan pada Senin, 18 Agustus 2025 di Aula Lt. 7 berlangsung sebagai bagian dari perayaan kemerdekaan Indonesia yang ke-80, dengan nuansa keberagaman nusantara. Acara diavali dengan pemutaran video budaya Indonesia, dilanjutkan dengan games interaktif, doa bersama bagi suku-suku terabaikan, serta penampilan seni dari lima kelompok daerah: Sumatra, Jawa, Kalimantan, Sulawesi, dan Nusa Tenggara. Acara ini dilengkapi dengan kehadiran stand kuliner khas dari tiap provinsi, ditambah partisipasi dosen melalui stand khusus yang menambah suasana persatuan. Melalui perayaan ini, semangat Bhinneka Tunggal Ika ditegaskan kembali, yaitu membangun persatuan dalam Kristus melalui perbedaan suku, bahasa, dan budaya yang mempererat persaudaraan di antara mahasiswa maupun dosen.',
+    'Kegiatan malam budaya 2025',2,'Published', 2, '2026-02-15 14:00:00', '2026-02-14 11:00:00');
 IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 3)
     INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-    (3, 'Upcoming Theological Symposium 2026', 'theological-symposium-2026',
-     '<p>Join us for our annual Theological Symposium on March 25-27, 2026. Distinguished speakers from around the world will participate.</p>',
-     'Annual theological symposium announcement with international speakers',
-     2, 'published', 5, '2026-02-20 10:00:00', '2026-02-19 09:00:00');
+    (3, 'KUNJUNGAN YAYASAN SEKOLAH KRISTEN ELYON','kunjungan-yayasan-sekolah-kristen-elyon',
+    'Pada hari Kamis, 23 Oktober 2025, STT Bandung menerima kunjungan dari Yayasan Sekolah Kristen Elyon, Surabaya. Kami berharap kunjungan ini menjadi awal terjalinnya kerja sama yang baik antara STT Bandung dan Sekolah Kristen Elyon Surabaya di masa mendatang.',
+    'STT Bandung menerima kunjungan dari Yayasan Sekolah Kristen Elyon, Surabaya',3,'draft', 2, '2026-02-20 10:00:00', '2026-02-19 09:00:00');
 IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 4)
     INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-    (4, 'Student Research Excellence Awards', 'student-research-awards',
-     '<p>Congratulations to our students who received excellence awards for their outstanding research contributions.</p>',
-     'Students honored for their exceptional research work',
-     3, 'published', 3, '2026-03-05 15:00:00', '2026-03-04 12:00:00');
+    (4, 'HARI ULANG TAHUN KOTA BANDUNG','hari-ulang-tahun-kota-bandung',
+    'Dalam rangka perayaan Hari Jadi Kota Bandung yang ke-215, Mahasiswa STT Bandung (STTB) mendapat kesempatan untuk turut ambil bagian sebagai relawan dalam kegiatan bank sampah dan pembagian kacamata gratis. Kegiatan ini dilaksanakan pada hari Sabtu, 18 Oktober 2025, bertempat di Balai Kota Bandung.',
+    'Hari Jadi Kota Bandung yag ke-215, mahasiswa STT Bandung (STTB) ikut ambil bagian.',4,'draft', 2, '2026-03-05 15:00:00', '2026-03-04 12:00:00');
 IF NOT EXISTS (SELECT 1 FROM posts WHERE post_id = 5)
     INSERT INTO posts (post_id, title, slug, content, excerpt, featured_image_id, status, author_id, published_at, created_at) VALUES
-    (5, 'Registration for Strata 2 Program Now Open', 'strata-2-registration-open',
-     '<p>Applications for our Strata 2 (Master''s) program are now being accepted. Deadline is April 30, 2026.</p>',
-     'Master''s program registration announcement for 2026 intake',
-     5, 'published', 5, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
+    (5, 'WISUDA DAN DIES NATALIS KE XXXIII STTB 2025','wisuda-dan-dies-natalis-ke-xxxiii-sttb-2025',
+    'Pada hari Jumat, 10 Oktober 2025, STT Bandung menyelenggarakan wisuda bagi program Sarjana (S.Th. & S.Pd.) angkatan 2021 serta program Magister (M.Th., M.Pd., dan M.Min. Marketplace). Kami bersukacita atas kelulusan 8 orang dari program Sarjana dan 29 orang dari program Magister di tahun ini. Selain acara wisuda, STT Bandung juga merayakan Dies Natalis yang ke-33. Pada kesempatan ini, Bapak Pdt. Agus Gunawan, Ph.D., selaku Gembala Sidang GlI Hok Im Tong, menyampaikan pesan yang mengingatkan seluruh wisudawa dan jemaat tentang semangat dalam terus melayani karena kita memperoleh kekuatan dari Tuhan sendiri. Kami mengucapkan terima kasih kepada Bapak Pdt. Nainggolan, M.Min., M.Th., yang telah memberikan sambutan yang begitu menginspirasi. Terima kasih juga kami sampaikan kepada keluarga wisudawan, kolega, dan seluruh tamu undangan yang telah hadir serta memberikan dukungan. Tuhan memberkati pelayanan kita semua.',
+    'Pada hari jumat,10 Oktober 2025, STT Bandung menyelenggarakan wisuda bagi program Sarjana (S.Th, & S.Pd.) angkatan 2021 serta program Magister (M.Th., M.Pd., dan M.Min Marketplace)',5,'draft', 2, '2026-03-08 08:00:00', '2026-03-07 14:00:00');
 SET IDENTITY_INSERT posts OFF;
 GO
 
 -- Insert Post Categories
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 1) INSERT INTO post_categories VALUES (1, 1);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 4) INSERT INTO post_categories VALUES (1, 4);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 1) INSERT INTO post_categories VALUES (2, 1);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 5) INSERT INTO post_categories VALUES (2, 5);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 3) INSERT INTO post_categories VALUES (3, 3);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 2) INSERT INTO post_categories VALUES (3, 2);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 5) INSERT INTO post_categories VALUES (4, 5);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 6) INSERT INTO post_categories VALUES (4, 6);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 4) INSERT INTO post_categories VALUES (5, 4);
-IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 2) INSERT INTO post_categories VALUES (5, 2);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 1)
+    INSERT INTO post_categories (post_id, category_id) VALUES (1, 1);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 1 AND category_id = 4)
+    INSERT INTO post_categories (post_id, category_id) VALUES (1, 4);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 1)
+    INSERT INTO post_categories (post_id, category_id) VALUES (2, 1);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 2 AND category_id = 5)
+    INSERT INTO post_categories (post_id, category_id) VALUES (2, 5);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 3)
+    INSERT INTO post_categories (post_id, category_id) VALUES (3, 3);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 3 AND category_id = 2)
+    INSERT INTO post_categories (post_id, category_id) VALUES (3, 2);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 5)
+    INSERT INTO post_categories (post_id, category_id) VALUES (4, 5);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 4 AND category_id = 6)
+    INSERT INTO post_categories (post_id, category_id) VALUES (4, 6);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 4)
+    INSERT INTO post_categories (post_id, category_id) VALUES (5, 4);
+IF NOT EXISTS (SELECT 1 FROM post_categories WHERE post_id = 5 AND category_id = 2)
+    INSERT INTO post_categories (post_id, category_id) VALUES (5, 2);
 GO
 
 -- Insert Menus
