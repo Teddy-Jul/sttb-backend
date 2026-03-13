@@ -17,6 +17,7 @@ public class EventListItem
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int? FeaturedImageId { get; set; }
     public string? FeaturedImageUrl { get; set; }
     public DateTime? CreatedAt { get; set; }
 }

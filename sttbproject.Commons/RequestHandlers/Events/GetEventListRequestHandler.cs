@@ -36,6 +36,14 @@ public class GetEventListRequestHandler : IRequestHandler<GetEventListRequest, G
         if (!string.IsNullOrWhiteSpace(request.Status))
             query = query.Where(e => e.Status == request.Status);
 
+        // Date range overlap filter: event overlaps [StartDateFrom, StartDateTo] when
+        // StartDate <= to AND (EndDate >= from OR (EndDate == null AND StartDate >= from))
+        if (request.StartDateFrom.HasValue)
+            query = query.Where(e => (e.EndDate != null ? e.EndDate >= request.StartDateFrom.Value : e.StartDate >= request.StartDateFrom.Value));
+
+        if (request.StartDateTo.HasValue)
+            query = query.Where(e => e.StartDate <= request.StartDateTo.Value);
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var events = await query
@@ -51,6 +59,7 @@ public class GetEventListRequestHandler : IRequestHandler<GetEventListRequest, G
                 StartDate = e.StartDate,
                 EndDate = e.EndDate,
                 Status = e.Status ?? string.Empty,
+                FeaturedImageId = e.FeaturedImageId,
                 FeaturedImageUrl = e.FeaturedImage != null
                     ? _fileStorageService.GetFileUrl(e.FeaturedImage.FilePath ?? string.Empty)
                     : null,

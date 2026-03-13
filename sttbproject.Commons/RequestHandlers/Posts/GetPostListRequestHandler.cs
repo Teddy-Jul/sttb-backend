@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using sttbproject.Commons.Services;
 using sttbproject.Contracts.RequestModels.Posts;
 using sttbproject.Contracts.ResponseModels.Posts;
 using sttbproject.entities;
@@ -10,13 +11,16 @@ namespace sttbproject.Commons.RequestHandlers.Posts;
 public class GetPostListRequestHandler : IRequestHandler<GetPostListRequest, GetPostListResponse>
 {
     private readonly SttbprojectContext _context;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<GetPostListRequestHandler> _logger;
 
     public GetPostListRequestHandler(
         SttbprojectContext context,
+        IFileStorageService fileStorageService,
         ILogger<GetPostListRequestHandler> logger)
     {
         _context = context;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -25,6 +29,7 @@ public class GetPostListRequestHandler : IRequestHandler<GetPostListRequest, Get
         var query = _context.Posts
             .Include(p => p.Author)
             .Include(p => p.Categories)
+            .Include(p => p.FeaturedImage)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -63,7 +68,11 @@ public class GetPostListRequestHandler : IRequestHandler<GetPostListRequest, Get
                 AuthorName = p.Author!.Name ?? string.Empty,
                 Categories = p.Categories.Select(c => c.Name ?? string.Empty).ToList(),
                 PublishedAt = p.PublishedAt,
-                CreatedAt = p.CreatedAt ?? DateTime.MinValue
+                CreatedAt = p.CreatedAt ?? DateTime.MinValue,
+                FeaturedImageId = p.FeaturedImageId,
+                FeaturedImageUrl = p.FeaturedImage != null
+                    ? _fileStorageService.GetFileUrl(p.FeaturedImage.FilePath ?? string.Empty)
+                    : null
             })
             .ToListAsync(cancellationToken);
 

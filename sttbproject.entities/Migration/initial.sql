@@ -711,6 +711,15 @@ IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 4)
 IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 5)
     INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
     (5, 'Berita(WISUDA DAN DIES NATALIS KE XXXIII STTB 2025).png', 'media/2026/03/90f25ddd-a5b2-459d-95a3-9e58600183ed.png', 'image/png', 529048, 2);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 6)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (6, 'Kegiatan(Kelas Sit In Magister Pendidikan Kristen - Penulisan Akademik).png', 'media/2026/03/4efbbe44-06a4-4fc3-865c-e9f21eb78591.png', 'image/png', 411670, 2);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 7)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (7, 'Kegiatan(Kelas Sit In Magister Pendidikan Kristen - Pendidikan Berbasis Keluarga).png', 'media/2026/03/80ccbd6e-674f-4bbc-9431-0a42b185a329.png', 'image/png', 483090, 2);
+IF NOT EXISTS (SELECT 1 FROM media WHERE media_id = 8)
+    INSERT INTO media (media_id, file_name, file_path, file_type, file_size, uploaded_by) VALUES 
+    (8, 'Kegiatan(Kelas Sit In Magister Pendidikan Kristen - Hermeneutika).png', 'media/2026/03/ae7284eb-41f9-4232-8562-ce2604910e8f.png', 'image/png', 460480, 2);
 SET IDENTITY_INSERT media OFF;
 GO
 
@@ -1676,31 +1685,22 @@ GO
 SET IDENTITY_INSERT events ON;
 IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 1)
     INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-    (1, 'Penerimaan Mahasiswa Baru 2025', 'penerimaan-mahasiswa-baru-2025',
-     'Kegiatan penerimaan mahasiswa baru tahun akademik 2025/2026. Seluruh calon mahasiswa wajib hadir.',
-     'Gedung Aula STTB, Jakarta', '2025-07-14 08:00:00', '2025-07-14 16:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
+    (1, 'Kelas Sit In Magister Pendidikan Kristen - Penulisan Akademik', 'kelas-sit-in-magister-pendidikan-kristen---penulisan-akademik',
+     'Kuliah ini akan membantu mahasiswa untuk dapat melakukan riset literatur yang baik bagi penulisan tugas paper dan tugas akhir serta menuliskannya dengan terstruktur sehingga dapat dipublikasikan dalam publikasi ilmiah',
+     'Onsite', '2026-03-12 02:00:00.0000000', '2026-03-13 11:00:00.0000000', 6, 'draft', 2, NULL, GETDATE(), NULL);
 IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 2)
     INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-    (2, 'Seminar Teologi: Peran Gereja di Era Modern', 'seminar-teologi-peran-gereja-era-modern',
-     'Seminar teologi yang membahas peran dan tantangan gereja di era modern bersama narasumber nasional.',
-     'Aula Utama STTB', '2025-08-20 09:00:00', '2025-08-20 17:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
+    (2, 'Kelas Sit In Magister Pendidikan Kristen - Pendidikan Berbasis Keluarga', 'kelas-sit-in-magister-pendidikan-kristen---pendidikan-berbasis-keluarga',
+     'Mempelajari prinsip-prinsip biblika/teologis pernikahan dan keluarga Kristen, pentingnya pendidikan berbasis keluarga serta kolaborasinya dengan sekolah dan gereja dalam membentuk kehidupan anak yang berdampak bagi pertumbuhannya yang utuh.',
+     'Onsite', '2026-03-15 22:00:00.0000000', '2026-03-16 22:00:00.0000000', 7, 'draft', 2, NULL, GETDATE(), NULL);
 IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 3)
     INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-    (3, 'Retreat Mahasiswa Semester Ganjil 2025', 'retreat-mahasiswa-semester-ganjil-2025',
-     'Retreat rohani dan akademik mahasiswa STTB sebagai pembuka tahun akademik baru.',
-     'Wisma Bethel, Puncak, Jawa Barat', '2025-09-05 07:00:00', '2025-09-07 18:00:00', NULL, 'published', 2, NULL, GETDATE(), NULL);
-IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 4)
-    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-    (4, 'Wisuda Angkatan XIV', 'wisuda-angkatan-xiv',
-     'Upacara wisuda angkatan XIV Sekolah Tinggi Teologi Bethel untuk program S1 dan S2.',
-     'Gedung Serbaguna STTB, Jakarta', '2025-11-29 09:00:00', '2025-11-29 14:00:00', NULL, 'published', 1, NULL, GETDATE(), NULL);
-IF NOT EXISTS (SELECT 1 FROM events WHERE event_id = 5)
-    INSERT INTO events (event_id, title, slug, description, location, start_date, end_date, featured_image_id, status, created_by, updated_by, created_at, updated_at) VALUES
-    (5, 'Workshop Pelayanan Musik Gereja', 'workshop-pelayanan-musik-gereja',
-     'Workshop intensif sehari untuk meningkatkan kualitas pelayanan musik dalam konteks ibadah gereja.',
-     'Ruang Serbaguna STTB Lantai 2', '2025-10-11 09:00:00', '2025-10-11 16:00:00', NULL, 'draft', 2, NULL, GETDATE(), NULL);
+    (3, 'Kelas Sit In Magister Pendidikan Kristen - Hermeneutika', 'kelas-sit-in-magister-pendidikan-kristen---hermeneutika',
+     'Studi tentang prinsip - prinsip penafsiran Alkitab yang mencakup: 1. Motivasi dan wawasan dalam mempelajari Alkitab 2. Prinsip - prinsip mempelajari Alkitab secara induktif dengan metode K.O.M.A. (Konteks, Observasi, Makna, Aplikasi) | 3. Latihan keterampilan mempelajari Alkitab dengan metode K.O.M.A. dalam berbagai genre Alkitab. Melaluinya diharapkan mahasiwa memiliki perspektif biblical-contextual sebagai bekal dalam keterlibatan misi dunia kerja.',
+     'Onsite', '2026-01-09 09:00:00.0000000', '2026-05-18 14:00:00.0000000', 8, 'draft', 2, NULL, GETDATE(), NULL);
 SET IDENTITY_INSERT events OFF;
 GO
+
 
 -- ============================================
 -- CREATE INDEXES FOR PERFORMANCE

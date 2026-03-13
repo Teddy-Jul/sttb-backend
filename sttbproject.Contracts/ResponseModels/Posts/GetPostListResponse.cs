@@ -19,4 +19,6 @@ public class PostListItem
     public List<string> Categories { get; set; } = new();
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int? FeaturedImageId { get; set; }
+    public string? FeaturedImageUrl { get; set; }
 }
