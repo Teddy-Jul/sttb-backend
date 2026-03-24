@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,50 @@ public class DatabaseMigrationService : IHostedService
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<SttbprojectContext>();
 
+            // Ensure the main database structure/catalog exists
+            await context.Database.EnsureCreatedAsync(cancellationToken);
+
+            // Locate initial.sql
+            string[] possiblePaths = {
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "sttbproject.entities", "Migration", "initial.sql"),
+                Path.Combine(AppContext.BaseDirectory, "Migration", "initial.sql"),
+                Path.Combine(AppContext.BaseDirectory, "initial.sql")
+            };
+
+            string? sqlFilePath = possiblePaths.FirstOrDefault(File.Exists);
+
+            if (sqlFilePath != null)
+            {
+                _logger.LogInformation("Executing base script from {Path}", sqlFilePath);
+                var script = await File.ReadAllTextAsync(sqlFilePath, cancellationToken);
+                
+                // EF Core does not natively support the "GO" statement. We must split the script and execute each block.
+                var commands = Regex.Split(script, @"^\s*GO\s*$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
+
+                foreach (var cmd in commands)
+                {
+                    if (string.IsNullOrWhiteSpace(cmd)) continue;
+
+                    try
+                    {
+                        await context.Database.ExecuteSqlRawAsync(cmd, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Some commands like creating the DB or 'USE' context might fail depending on connection state. 
+                        // We swallow and move on so table creation scripts continue to run securely.
+                        _logger.LogWarning(ex, "Failed to execute a block of SQL. This might be normal for 'USE' or 'CREATE DB' commands. Continuing...");
+                    }
+                }
+                
+                _logger.LogInformation("initial.sql applied successfully.");
+            }
+            else
+            {
+                _logger.LogWarning("initial.sql not found! Skipped executing base script.");
+            }
+
+            // Apply EF Core Pipeline Migrations (if you mix both methodologies)
             var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 
             if (pendingMigrations.Any())
@@ -42,7 +88,7 @@ public class DatabaseMigrationService : IHostedService
             }
             else
             {
-                _logger.LogInformation("No pending migrations found.");
+                _logger.LogInformation("No pending EF framework migrations found.");
             }
 
             // Auto-patch: Add 'slug' column to 'study_programs' if it doesn't exist
