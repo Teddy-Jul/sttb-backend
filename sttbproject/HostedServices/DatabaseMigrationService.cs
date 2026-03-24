@@ -1,10 +1,12 @@
 using System;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -34,8 +36,19 @@ public class DatabaseMigrationService : IHostedService
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<SttbprojectContext>();
 
-            // Ensure the main database structure/catalog exists
-            await context.Database.EnsureCreatedAsync(cancellationToken);
+            // We safely apply pending structure migrations first if any exist so EF Core gets initialized properly over Master connection
+            var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+
+            if (pendingMigrations.Any())
+            {
+                _logger.LogInformation("Applying {Count} pending migrations: {Migrations}", pendingMigrations.Count, string.Join(", ", pendingMigrations));
+                await context.Database.MigrateAsync(cancellationToken);
+                _logger.LogInformation("Database migrations applied successfully.");
+            }
+            else
+            {
+                _logger.LogInformation("No pending EF migrations found.");
+            }
 
             // Locate initial.sql
             string[] possiblePaths = {
@@ -51,22 +64,46 @@ public class DatabaseMigrationService : IHostedService
                 _logger.LogInformation("Executing base script from {Path}", sqlFilePath);
                 var script = await File.ReadAllTextAsync(sqlFilePath, cancellationToken);
                 
-                // EF Core does not natively support the "GO" statement. We must split the script and execute each block.
+                // Split GO blocks safely
                 var commands = Regex.Split(script, @"^\s*GO\s*$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
-                foreach (var cmd in commands)
+                // Use Raw ADO.NET connection to avoid DbContext String Formatter `{}` breaks (JSON parsing issues)
+                var connection = context.Database.GetDbConnection();
+                if (connection.State != ConnectionState.Open)
                 {
-                    if (string.IsNullOrWhiteSpace(cmd)) continue;
+                    await connection.OpenAsync(cancellationToken);
+                }
+
+                foreach (var cmdStr in commands)
+                {
+                    var sql = cmdStr.Trim();
+                    if (string.IsNullOrWhiteSpace(sql)) continue;
 
                     try
                     {
-                        await context.Database.ExecuteSqlRawAsync(cmd, cancellationToken);
+                        using var dbCommand = connection.CreateCommand();
+                        dbCommand.CommandText = sql;
+                        
+                        if (context.Database.CurrentTransaction != null)
+                        {
+                            dbCommand.Transaction = context.Database.CurrentTransaction.GetDbTransaction();
+                        }
+
+                        await dbCommand.ExecuteNonQueryAsync(cancellationToken);
                     }
                     catch (Exception ex)
                     {
-                        // Some commands like creating the DB or 'USE' context might fail depending on connection state. 
-                        // We swallow and move on so table creation scripts continue to run securely.
-                        _logger.LogWarning(ex, "Failed to execute a block of SQL. This might be normal for 'USE' or 'CREATE DB' commands. Continuing...");
+                        // "CREATE DATABASE" or "USE" statements frequently fail from EF context connection policies. Safe to skip.
+                        if (sql.StartsWith("CREATE DATABASE", StringComparison.OrdinalIgnoreCase) || 
+                            sql.StartsWith("USE ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogWarning("Skipping DB CREATE/USE command due to context limitations.");
+                        }
+                        else
+                        {
+                            // If a query still fails here, it is an actual SQL syntax or structural problem.
+                            _logger.LogError(ex, "Script execution failed on SQL block:\n{CommandText}", sql.Substring(0, Math.Min(300, sql.Length)));
+                        }
                     }
                 }
                 
@@ -75,20 +112,6 @@ public class DatabaseMigrationService : IHostedService
             else
             {
                 _logger.LogWarning("initial.sql not found! Skipped executing base script.");
-            }
-
-            // Apply EF Core Pipeline Migrations (if you mix both methodologies)
-            var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
-
-            if (pendingMigrations.Any())
-            {
-                _logger.LogInformation("Applying {Count} pending migrations: {Migrations}", pendingMigrations.Count, string.Join(", ", pendingMigrations));
-                await context.Database.MigrateAsync(cancellationToken);
-                _logger.LogInformation("Database migrations applied successfully.");
-            }
-            else
-            {
-                _logger.LogInformation("No pending EF framework migrations found.");
             }
 
             // Auto-patch: Add 'slug' column to 'study_programs' if it doesn't exist

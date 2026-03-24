@@ -348,7 +348,7 @@ BEGIN
 END
 GO
 
-IF COL_LENGTH('courses', 'credits') IS NOT NULL
+IF OBJECT_ID('category_courses', 'U') IS NOT NULL AND COL_LENGTH('courses', 'credits') IS NOT NULL
 BEGIN
     UPDATE c
     SET c.credits = x.credits
@@ -1036,7 +1036,7 @@ BEGIN
 ('Bahasa Indonesia','Mata kuliah ini memperlengkapi mahasiswa dengan keterampilan membaca seperti menemukan ide pokok, skimming, scanning, summarizing dan reading comprehension.'),
 ('Bahasa Inggris Teologi','Mata kuliah ini mempelajari tata bahasa Inggris dasar serta penerapannya pada bacaan dan kosa kata teologis melalui empat keterampilan bahasa: mendengar, berbicara, membaca dan menulis.'),
 ('Metode Berpikir','Mata kuliah ini mempelajari konsep dasar logika dan berpikir kritis sehingga mahasiswa mampu menghasilkan pemikiran kritis berdasarkan data yang akurat.'),
-('Psikologi Perkembangan Masa Hidup','Mata kuliah ini mempelajari konsep dasar psikologi perkembangan termasuk teori, rentang masa hidup dan kontribusinya bagi pelayanan.'),
+('Psikologi Perkembangan Masa Hidup','Mata kuliah ini mempelajari konsep dasar psikologi perkembangan termasuk teori, rentang masa hidup dan kontribusinya bagi layanan.'),
 ('Metode Penulisan & Penelitian','Mata kuliah ini memberikan dasar pemahaman dan keterampilan praktis untuk melakukan penelitian literatur termasuk merumuskan masalah dan menyusun kajian pustaka.'),
 
 
@@ -1174,8 +1174,8 @@ BEGIN
 ('Mentoring Spiritual I-Learn','Mata kuliah ini berbentuk persekutuan mahasiswa yang bertujuan membangun pertumbuhan spiritual dan komunitas iman.'),
 
 -- Transformasi Budaya
-('Perspektif Teologi Tentang Kemiskinan','Mata kuliah ini mengeksplorasi pandangan teologi dan biblika tentang kemiskinan serta implikasinya bagi pelayanan sosial gereja.'),
-('Perspektif Teologi Tentang Dunia Kerja dan Perekonomian','Mata kuliah ini membahas pandangan teologi dan biblika mengenai dunia kerja dan ekonomi serta penerapannya dalam kehidupan profesional.'),
+('Perspektif Teologi Tentang Kemiskinan','Mata kuliah ini mengeksplorasi pandangan teologi and biblika tentang kemiskinan serta implikasinya bagi pelayanan sosial gereja.'),
+('Perspektif Teologi Tentang Dunia Kerja dan Perekonomian','Mata kuliah ini membahas pandangan teologi and biblika mengenai dunia kerja dan ekonomi serta penerapannya dalam kehidupan profesional.'),
 ('Perspektif Teologi Tentang Ekologi','Mata kuliah ini membahas pandangan teologi tentang tanggung jawab manusia terhadap lingkungan dan pemeliharaan ciptaan.'),
 ('Perspektif Teologi Tentang Keadilan dan Kekuasaan','Mata kuliah ini mengkaji konsep keadilan dan kekuasaan dari perspektif teologi dan biblika serta penerapannya dalam kehidupan sosial.'),
 ('Perspektif Teologi Tentang Kemajemukan','Mata kuliah ini membahas pandangan teologi Kristen terhadap pluralitas masyarakat serta upaya membangun dialog dan toleransi.'),
@@ -1191,7 +1191,7 @@ BEGIN
 ('Sejarah Filosofi dan Teologi Pendidikan Kristen','Mata kuliah ini mempelajari sejarah perkembangan pendidikan Kristen beserta filosofi dan teologi yang mendasarinya.'),
 ('Psikologi Perkembangan dan Pendidikan','Mata kuliah ini mempelajari teori perkembangan manusia dan implikasinya bagi praktik pendidikan Kristen.'),
 ('Transformasi Spiritualitas Pendidikan','Mata kuliah ini membahas perkembangan spiritual dalam konteks pendidikan dan implikasinya bagi proses pembelajaran.'),
-('Pendidikan Berbasis Keluarga','Mata kuliah ini membahas prinsip pendidikan Kristen dalam keluarga serta kolaborasi keluarga, gereja, dan sekolah.'),
+('Pendidikan Berbasis Keluarga','Mata kuliah ini membahas prinsip pendidikan Kristen dalam keluarga serta kolaborasi keluarga, gereja, dan sekolah dalam membentuk kehidupan anak yang berdampak bagi pertumbuhannya yang utuh.'),
 ('Mentoring Perjalanan Studi','Mata kuliah ini membimbing mahasiswa mengevaluasi dan merencanakan perjalanan studinya melalui refleksi dan portofolio pembelajaran.'),
 ('Desain dan Pengembangan Kurikulum','Mata kuliah ini membahas prinsip dan proses pengembangan kurikulum pendidikan yang berlandaskan nilai Alkitabiah.'),
 ('Evaluasi Pembelajaran','Mata kuliah ini mempelajari metode asesmen untuk mengukur pencapaian tujuan pembelajaran.'),
