@@ -26,6 +26,7 @@ public class CreateCourseRequestHandler : IRequestHandler<CreateCourseRequest, C
         var course = new Course
         {
             CourseName = request.CourseName,
+            Credits = request.Credits,
             Description = request.Description,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -40,6 +41,7 @@ public class CreateCourseRequestHandler : IRequestHandler<CreateCourseRequest, C
         {
             CourseId = course.CourseId,
             CourseName = course.CourseName ?? string.Empty,
+            Credits = course.Credits,
             Description = course.Description,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt

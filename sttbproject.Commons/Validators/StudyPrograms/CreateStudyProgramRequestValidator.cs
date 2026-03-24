@@ -23,5 +23,12 @@ public class CreateStudyProgramRequestValidator : AbstractValidator<CreateStudyP
 
         RuleFor(x => x.StudyDuration)
             .MaximumLength(100).WithMessage("Study duration must not exceed 100 characters");
+
+        RuleForEach(x => x.CourseIds)
+            .GreaterThan(0).WithMessage("Each selected course must have a valid ID");
+
+        RuleForEach(x => x.CourseSelections)
+            .Must(x => x.CourseId > 0 && x.CategoryId > 0)
+            .WithMessage("Each course selection must include valid course and category IDs");
     }
 }

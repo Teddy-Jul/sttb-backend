@@ -334,10 +334,32 @@ BEGIN
     CREATE TABLE courses (
         course_id INT IDENTITY(1,1) PRIMARY KEY,
         course_name NVARCHAR(255),
+        credits INT,
         description NVARCHAR(MAX),
         created_at DATETIME2 DEFAULT GETDATE(),
         updated_at DATETIME2 DEFAULT GETDATE()
     );
+END
+GO
+
+IF COL_LENGTH('courses', 'credits') IS NULL
+BEGIN
+    ALTER TABLE courses ADD credits INT;
+END
+GO
+
+IF COL_LENGTH('courses', 'credits') IS NOT NULL
+BEGIN
+    UPDATE c
+    SET c.credits = x.credits
+    FROM courses c
+    INNER JOIN (
+        SELECT course_id, MAX(credits) AS credits
+        FROM category_courses
+        WHERE credits IS NOT NULL
+        GROUP BY course_id
+    ) x ON x.course_id = c.course_id
+    WHERE c.credits IS NULL;
 END
 GO
 
@@ -1648,6 +1670,24 @@ BEGIN
     (46,98,3),  -- Penulisan Akademik
     (46,167,6); -- Tugas Akhir Praktik Pelayanan
 END
+GO
+
+-- Sinkronkan SKS per mata kuliah dari mapping category_courses
+UPDATE c
+SET c.credits = x.max_credits
+FROM courses c
+INNER JOIN (
+    SELECT course_id, MAX(credits) AS max_credits
+    FROM category_courses
+    WHERE credits IS NOT NULL
+    GROUP BY course_id
+) x ON x.course_id = c.course_id;
+GO
+
+-- Pastikan semua mata kuliah punya nilai SKS default
+UPDATE courses
+SET credits = 0
+WHERE credits IS NULL;
 GO
 
 

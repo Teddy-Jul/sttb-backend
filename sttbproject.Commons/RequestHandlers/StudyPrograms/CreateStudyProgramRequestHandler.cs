@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using sttbproject.Contracts.RequestModels.StudyPrograms;
@@ -38,6 +38,96 @@ public class CreateStudyProgramRequestHandler : IRequestHandler<CreateStudyProgr
 
         _context.StudyPrograms.Add(program);
         await _context.SaveChangesAsync(cancellationToken);
+
+        var normalizedSelections = request.CourseSelections
+            .Where(x => x.CourseId > 0 && x.CategoryId > 0)
+            .GroupBy(x => x.CourseId)
+            .Select(g => g.First())
+            .ToList();
+
+        if (normalizedSelections.Count == 0)
+        {
+            var selectedCourseIds = request.CourseIds
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (selectedCourseIds.Count > 0)
+            {
+                var fallbackCategoryId = await _context.CourseCategories
+                    .OrderBy(c => c.CategoryId)
+                    .Select(c => c.CategoryId)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (fallbackCategoryId <= 0)
+                {
+                    throw new InvalidOperationException("No course category available for selected courses");
+                }
+
+                normalizedSelections = selectedCourseIds
+                    .Select(id => new StudyProgramCourseSelectionItem { CourseId = id, CategoryId = fallbackCategoryId })
+                    .ToList();
+            }
+        }
+
+        if (normalizedSelections.Count > 0)
+        {
+            var selectedCourseIds = normalizedSelections.Select(x => x.CourseId).Distinct().ToList();
+            var selectedCategoryIds = normalizedSelections.Select(x => x.CategoryId).Distinct().ToList();
+
+            var existingCourses = await _context.Courses
+                .Where(c => selectedCourseIds.Contains(c.CourseId))
+                .Select(c => new { c.CourseId, c.Credits })
+                .ToListAsync(cancellationToken);
+
+            if (existingCourses.Count != selectedCourseIds.Count)
+            {
+                throw new InvalidOperationException("One or more selected courses were not found");
+            }
+
+            var existingCategoryIds = await _context.CourseCategories
+                .Where(c => selectedCategoryIds.Contains(c.CategoryId))
+                .Select(c => c.CategoryId)
+                .ToListAsync(cancellationToken);
+
+            if (existingCategoryIds.Count != selectedCategoryIds.Count)
+            {
+                throw new InvalidOperationException("One or more selected course categories were not found");
+            }
+
+            var courseCreditsMap = existingCourses.ToDictionary(c => c.CourseId, c => c.Credits ?? 0);
+
+            var groupedByCategory = normalizedSelections
+                .GroupBy(x => x.CategoryId)
+                .ToList();
+
+            foreach (var categoryGroup in groupedByCategory)
+            {
+                var programCategory = new ProgramCourseCategory
+                {
+                    ProgramId = program.ProgramId,
+                    CategoryId = categoryGroup.Key,
+                    TotalCredits = categoryGroup.Sum(x => courseCreditsMap.GetValueOrDefault(x.CourseId, 0)),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+
+                _context.ProgramCourseCategories.Add(programCategory);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                var categoryCourses = categoryGroup.Select(selection => new CategoryCourse
+                {
+                    ProgramCategoryId = programCategory.ProgramCategoryId,
+                    CourseId = selection.CourseId,
+                    Credits = courseCreditsMap.GetValueOrDefault(selection.CourseId, 0),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                });
+
+                _context.CategoryCourses.AddRange(categoryCourses);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
 
         _logger.LogInformation("Study program created successfully with ID: {ProgramId}", program.ProgramId);
 

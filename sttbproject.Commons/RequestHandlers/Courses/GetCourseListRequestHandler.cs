@@ -42,6 +42,7 @@ public class GetCourseListRequestHandler : IRequestHandler<GetCourseListRequest,
             {
                 CourseId = c.CourseId,
                 CourseName = c.CourseName ?? string.Empty,
+                Credits = c.Credits,
                 Description = c.Description,
                 CreatedAt = c.CreatedAt
             })

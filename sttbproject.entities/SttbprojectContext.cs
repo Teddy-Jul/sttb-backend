@@ -189,6 +189,7 @@ public partial class SttbprojectContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnName("created_at");
+            entity.Property(e => e.Credits).HasColumnName("credits");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("(getdate())")

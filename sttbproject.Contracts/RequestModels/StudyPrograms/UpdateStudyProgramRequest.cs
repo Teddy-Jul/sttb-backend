@@ -12,4 +12,6 @@ public class UpdateStudyProgramRequest : IRequest<StudyProgramDetailResponse>
     public int? TotalCredits { get; set; }
     public string? StudyDuration { get; set; }
     public string? Description { get; set; }
+    public List<int> CourseIds { get; set; } = new();
+    public List<StudyProgramCourseSelectionItem> CourseSelections { get; set; } = new();
 }

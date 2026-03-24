@@ -34,6 +34,7 @@ public class UpdateCourseRequestHandler : IRequestHandler<UpdateCourseRequest, C
         }
 
         course.CourseName = request.CourseName;
+        course.Credits = request.Credits;
         course.Description = request.Description;
         course.UpdatedAt = DateTime.UtcNow;
 
@@ -45,6 +46,7 @@ public class UpdateCourseRequestHandler : IRequestHandler<UpdateCourseRequest, C
         {
             CourseId = course.CourseId,
             CourseName = course.CourseName ?? string.Empty,
+            Credits = course.Credits,
             Description = course.Description,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt

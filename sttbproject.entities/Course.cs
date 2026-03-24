@@ -11,6 +11,8 @@ public partial class Course
 
     public string? Description { get; set; }
 
+    public int? Credits { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
